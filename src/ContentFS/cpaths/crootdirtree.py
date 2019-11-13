@@ -7,7 +7,7 @@ from ContentFS.diff import Diff
 from ContentFS.ignorer import Ignorer
 
 
-class CRootTree(CDirTree):
+class CRootDirTree(CDirTree):
     def __init__(self, base_path, ignorer: Ignorer):
         super().__init__("")
         self.__base_path = base_path

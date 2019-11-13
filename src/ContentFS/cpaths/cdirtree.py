@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
+from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cpath import CPath
 
 
-class CDirTree(CPath):
+class CDirTree(CDir):
     def __init__(self, names):
         super().__init__(names)
         self._child_map = OrderedDict()
@@ -88,4 +89,5 @@ class CDirTree(CPath):
         return dct
 
     def equals(self, another):
+        # TODO: should implement recursive child matching?
         return another.is_dir() and self.names == another.names
