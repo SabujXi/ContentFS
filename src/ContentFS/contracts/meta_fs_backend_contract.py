@@ -23,9 +23,5 @@ class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
         """Get modification? time"""
 
     @abc.abstractmethod
-    def getctime(self, path):
-        """Get last metadata change or creation time (on windows)"""
-
-    @abc.abstractmethod
     def gethash(self, path):
         """Get hash of the file"""

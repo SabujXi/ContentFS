@@ -57,16 +57,6 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
             )
         return res
 
-    def getctime(self, cpath: CPath):
-        try:
-            res = os.path.getctime(cpath.path)
-        except (OSError, IOError) as e:
-            raise CFSException(
-                f'File System Error (occurred during getctime on cpath: {cpath}):\n'
-                f'{str(e)}'
-            )
-        return res
-
     def gethash(self, cpath: CPath):
         if not cpath.is_file():
             raise CFSException(
