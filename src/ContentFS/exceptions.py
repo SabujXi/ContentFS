@@ -1,0 +1,2 @@
+class CFSException(Exception):
+    pass
