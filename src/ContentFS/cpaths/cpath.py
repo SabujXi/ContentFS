@@ -11,7 +11,23 @@ class CPath:
         return CPath.SPLIT_RE.split(path_string)
 
     def __init__(self, names):
-        self.__names = tuple(names)
+        """
+        names can be string/byte path or list/tuple of string/byte paths.
+        :param names:
+        """
+        _names = []
+        # when a string of path instead of an iterable of names is provided.
+        # or when byte string is provided
+        if isinstance(names, (str, bytes)):
+            _names = self.path_to_names(names)
+        # when an iterable of path component strings is provided
+        # but as those strings might have slashes between then
+        elif isinstance(names, (list, tuple)):
+            for name in names:
+                assert isinstance(name, (str, bytes))
+                _names.extend(self.path_to_names(name))
+        assert len(_names) > 0, "Path cannot be empty."
+        self.__names = tuple(_names)
 
     @property
     def name(self):
