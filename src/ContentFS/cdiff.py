@@ -1,4 +1,4 @@
-class Diff:
+class CDiff:
     def __init__(self):
         self.__deleted = []
         self.__modified = []

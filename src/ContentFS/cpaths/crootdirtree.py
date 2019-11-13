@@ -3,7 +3,7 @@ from json import dumps
 
 from ContentFS.cpaths.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
-from ContentFS.diff import Diff
+from ContentFS.cdiff import Diff
 from ContentFS.ignorer import Ignorer
 
 
