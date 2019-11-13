@@ -41,7 +41,7 @@ class CPath:
             if end_char in ("\\", "/"):
                 self.__is_dir = True
         # cached results
-        self.__cached_path = "/".join(self.__names)
+        self.__cached_path = None
 
     @property
     def name(self):
@@ -53,6 +53,8 @@ class CPath:
 
     @property
     def path(self):
+        if self.__cached_path is None:
+            self.__cached_path = "/".join(self.__names) + '' if self.is_file() else '/'
         return self.__cached_path
 
     def is_file(self):
