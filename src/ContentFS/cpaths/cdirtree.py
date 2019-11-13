@@ -3,7 +3,7 @@ from collections import OrderedDict
 from ContentFS.cpaths.cpath import CPath
 
 
-class CTree(CPath):
+class CDirTree(CPath):
     def __init__(self, names):
         super().__init__(names)
         self._child_map = OrderedDict()
@@ -49,7 +49,7 @@ class CTree(CPath):
                 # break
             else:
                 _to_create_target_names.append(_name)
-                cdir = CTree([*_parent.names, *_to_create_target_names])
+                cdir = CDirTree([*_parent.names, *_to_create_target_names])
                 _parent.add_child(cdir)
                 _parent = cdir
                 # continue
@@ -57,7 +57,7 @@ class CTree(CPath):
 
         # while _to_create_target_names:
         #     name = _to_create_target_names.pop(0)
-        #     new_child = CTree([*cdir.names, name])
+        #     new_child = CDirTree([*cdir.names, name])
         #     cdir.add_child(new_child)
         #     cdir = new_child
         return _parent
