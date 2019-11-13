@@ -25,8 +25,7 @@ class CPath:
         elif isinstance(names, (list, tuple)):
             for name in names:
                 assert isinstance(name, (str, bytes))
-                _names.extend(self.path_to_names(name))
-        assert len(_names) > 0, "Path cannot be empty."
+                _names.extend(_name for _name in self.path_to_names(name) if _name)
         self.__names = tuple(_names)
 
     @property
