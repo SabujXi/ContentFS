@@ -1,13 +1,13 @@
 import os
 from json import dumps
 
-from ContentFS.cpaths.cdir import CDir
+from ContentFS.cpaths.ctree import CTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.diff import Diff
 from ContentFS.ignorer import Ignorer
 
 
-class CRoot(CDir):
+class CRoot(CTree):
     def __init__(self, base_path, ignorer: Ignorer):
         super().__init__("")
         self.__base_path = base_path
@@ -24,7 +24,7 @@ class CRoot(CDir):
     #     self._child_map[cpath.name] = cpath
 
     def __list(self, parent):
-        assert isinstance(parent, CDir)
+        assert isinstance(parent, CTree)
         path_names = os.listdir(os.path.join(self.base_path, *parent.names))
         parent_names = parent.names
         for path_name in path_names:
@@ -34,7 +34,7 @@ class CRoot(CDir):
                 mtime = os.path.getmtime(abs_path)
                 cpath = CFile(names, mtime, os.path.getsize(abs_path))
             else:
-                cpath = CDir(names)
+                cpath = CTree(names)
 
             if self.__ignorer.ignore(cpath):
                 continue
@@ -97,7 +97,7 @@ class CRoot(CDir):
                 size = child_dict['size']
                 child_cpath = CFile(names, mtime, size)
             else:
-                child_cpath = CDir(names)
+                child_cpath = CTree(names)
             parent_cdir.add_child(child_cpath)
         self.__loaded = True
 
