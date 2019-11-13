@@ -31,7 +31,6 @@ class CFile(CPath):
 
     def to_dict(self):
         dct = super().to_dict()
-        dct['type'] = 'FILE'
         dct['mtime'] = self.mtime
         dct['size'] = self.size
         return dct

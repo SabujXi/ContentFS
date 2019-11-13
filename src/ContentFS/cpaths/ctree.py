@@ -84,7 +84,6 @@ class CTree(CPath):
 
     def to_dict(self):
         dct = super().to_dict()
-        dct['type'] = 'DIR'
         dct['children'] = tuple([child.to_dict() for child in self.get_children()])
         return dct
 

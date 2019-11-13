@@ -28,6 +28,21 @@ class CPath:
                 _names.extend(_name for _name in self.path_to_names(name) if _name)
         self.__names = tuple(_names)
 
+        # check whether it is a dir or file looking at the end of the `names`
+        self.__is_dir = False
+        if len(self.__names) == 0:
+            self.__is_dir = True
+        else:
+            end_char = None
+            if isinstance(names, (str, bytes)):
+                end_char = names[-1]
+            else:
+                end_char = names[-1][-1]
+            if end_char in ("\\", "/"):
+                self.__is_dir = True
+        # cached results
+        self.__cached_path = "/".join(self.__names)
+
     @property
     def name(self):
         return self.__names[-1]
@@ -38,21 +53,24 @@ class CPath:
 
     @property
     def path(self):
-        return "/".join(self.__names)
+        return self.__cached_path
 
     def is_file(self):
-        raise NotImplemented()
+        return not self.__is_dir
 
     def is_dir(self):
-        raise NotImplemented()
+        return self.__is_dir
 
     def __str__(self):
         return "CPath: " + self.path
 
     def to_dict(self):
-        return {
-            'names': self.names
+        cpath_type = 'FILE' if self.is_file() else 'DIR'
+        dct = {
+            'names': self.names,
+            'type': cpath_type
         }
+        return dct
 
     def to_path_dict(self):
         return {
