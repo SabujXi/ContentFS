@@ -30,11 +30,5 @@ class CFile(CPath):
         dct['size'] = self.size
         return dct
 
-    def to_path_dict(self):
-        pdct = super().to_path_dict()
-        pdct['mtime'] = self.mtime
-        pdct['size'] = self.size
-        return pdct
-
     def __str__(self):
         return super().__str__()

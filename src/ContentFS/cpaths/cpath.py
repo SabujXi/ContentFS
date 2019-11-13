@@ -72,21 +72,13 @@ class CPath:
     def to_dict(self):
         dct = {
             'names': self.names,
-            'type': self.get_type()
+            'type': self.get_type(),
+            'path': self.path
         }
         return dct
 
-    def to_path_dict(self):
-        return {
-            'path': self.path,
-            'type': self.get_type()
-        }
-
     def to_json(self):
         return dumps(self.to_dict())
-
-    def to_path_json(self):
-        return dumps(self.to_path_dict())
 
     def equals(self, another):
         return self.names == another.names and self.get_type() == another.get_type()

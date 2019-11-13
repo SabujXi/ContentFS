@@ -18,7 +18,3 @@ class CFileHashed(CFile):
         dct['hash'] = self.hash
         return dct
 
-    def to_path_dict(self):
-        pdct = super().to_path_dict()
-        pdct['hash'] = self.hash
-        return pdct

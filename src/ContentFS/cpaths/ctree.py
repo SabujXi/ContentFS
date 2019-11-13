@@ -87,10 +87,5 @@ class CTree(CPath):
         dct['children'] = tuple([child.to_dict() for child in self.get_children()])
         return dct
 
-    def to_path_dict(self):
-        pdct = super().to_path_dict()
-        pdct['children'] = tuple([child.to_path_dict() for child in self.get_children()])
-        return pdct
-
     def equals(self, another):
         return another.is_dir() and self.names == another.names
