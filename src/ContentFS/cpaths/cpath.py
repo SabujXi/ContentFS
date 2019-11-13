@@ -61,20 +61,23 @@ class CPath:
     def is_dir(self):
         return self.__is_dir
 
+    def get_type(self) -> str:
+        return 'FILE' if self.is_file() else 'DIR'
+
     def __str__(self):
         return "CPath: " + self.path
 
     def to_dict(self):
-        cpath_type = 'FILE' if self.is_file() else 'DIR'
         dct = {
             'names': self.names,
-            'type': cpath_type
+            'type': self.get_type()
         }
         return dct
 
     def to_path_dict(self):
         return {
-            'path': self.path
+            'path': self.path,
+            'type': self.get_type()
         }
 
     def to_json(self):
