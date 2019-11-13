@@ -1,38 +1,36 @@
 import os
 from json import dumps
 
+from ContentFS.cpaths.cpath import CPath
 from ContentFS.cpaths.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
-from ContentFS.cdiff import Diff
+from ContentFS.cdiff import CDiff
 from ContentFS.ignorer import Ignorer
+from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 
 
 class CRootDirTree(CDirTree):
-    def __init__(self, base_path, ignorer: Ignorer):
+    def __init__(self, base_path, ignorer: Ignorer, fs: BaseMetaFsBackendContract):
         super().__init__("")
         self.__base_path = base_path
         self.__ignorer = ignorer
+        self.__fs = fs
         self.__loaded = False
 
     @property
     def base_path(self):
         return self.__base_path
 
-    # def add_child(self, cpath: CPath):
-    #     assert isinstance(cpath, CPath)
-    #     assert cpath.name not in self._child_map, "Cannot add a child twice in root"
-    #     self._child_map[cpath.name] = cpath
-
-    def __list(self, parent):
+    def __list(self, parent: CPath):
         assert isinstance(parent, CDirTree)
-        path_names = os.listdir(os.path.join(self.base_path, *parent.names))
+        path_names = self.__fs.listdir(parent)
         parent_names = parent.names
         for path_name in path_names:
             names = (*parent_names, path_name)
-            abs_path = os.path.join(self.__base_path, *names)
-            if os.path.isfile(abs_path):
-                mtime = os.path.getmtime(abs_path)
-                cpath = CFile(names, mtime, os.path.getsize(abs_path))
+            child_cpath = CPath(names)
+            if self.__fs.is_file(child_cpath):
+                mtime = self.__fs.getmtime(child_cpath)
+                cpath = CFile(names, mtime, self.__fs.getsize(child_cpath))
             else:
                 cpath = CDirTree(names)
 
@@ -61,7 +59,7 @@ class CRootDirTree(CDirTree):
         for cpath in root2.get_descendants():
             descendant_map2[cpath.path] = cpath
 
-        diff_obj = Diff()
+        diff_obj = CDiff()
 
         for cpath1 in descendant_map1.values():
             path1 = cpath1.path

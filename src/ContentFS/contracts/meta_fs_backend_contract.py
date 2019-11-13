@@ -19,6 +19,10 @@ class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
         """Lists a directory"""
 
     @abc.abstractmethod
+    def getsize(self, path):
+        """"""
+
+    @abc.abstractmethod
     def getmtime(self, path):
         """Get modification? time"""
 

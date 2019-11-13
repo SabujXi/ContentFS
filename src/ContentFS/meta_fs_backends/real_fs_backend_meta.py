@@ -7,9 +7,15 @@ from ContentFS.exceptions import CFSException
 
 
 class MetaFileSystemBackend(BaseMetaFsBackendContract):
+    def __init__(self, base_path):
+        self.__base_path = base_path
+
+    def _full_path(self, cpath: CPath):
+        return os.path.join(self.__base_path, cpath.path)
+
     def exists(self, cpath: CPath):
         try:
-            res = os.path.exists(cpath.path)
+            res = os.path.exists(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'Meta File System Error (occurred during exists() on cpath {cpath}):\n'
@@ -19,7 +25,7 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
 
     def is_file(self, cpath: CPath):
         try:
-            res = os.path.isfile(cpath.path)
+            res = os.path.isfile(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'Meta File System Error (occurred during checking if the cpath is a file cpath {cpath}):\n'
@@ -29,7 +35,7 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
 
     def is_dir(self, cpath: CPath):
         try:
-            res = os.path.isdir(cpath.path)
+            res = os.path.isdir(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'File System Error (occurred during checking if the cpath is a directory cpath {cpath}):\n'
@@ -39,7 +45,7 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
 
     def listdir(self, cpath: CPath):
         try:
-            res = os.listdir(cpath.path)
+            res = os.listdir(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'File System Error (occurred during listing cpath: {cpath}):\n'
@@ -49,10 +55,24 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
 
     def getmtime(self, cpath: CPath):
         try:
-            res = os.path.getmtime(cpath.path)
+            res = os.path.getmtime(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'File System Error (occurred during getmtime on cpath: {cpath}):\n'
+                f'{str(e)}'
+            )
+        return res
+
+    def getsize(self, cpath: CPath):
+        if not cpath.is_file():
+            raise CFSException(
+                f'File System Error (occurred during getsize on cpath: {cpath}):\n'
+            )
+        try:
+            res = os.path.getsize(cpath.path)
+        except (OSError, IOError) as e:
+            raise CFSException(
+                f'File System Error (occurred during gethash on cpath: {cpath}):\n'
                 f'{str(e)}'
             )
         return res
@@ -66,7 +86,7 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
         try:
             BLOCKSIZE = 65536
             hasher = hashlib.sha1()
-            with open(cpath.path, 'rb') as afile:
+            with open(self._full_path(cpath), 'rb') as afile:
                 buf = afile.read(BLOCKSIZE)
                 while len(buf) > 0:
                     hasher.update(buf)
