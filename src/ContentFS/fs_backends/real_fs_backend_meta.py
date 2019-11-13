@@ -68,6 +68,11 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
         return res
 
     def gethash(self, cpath: CPath):
+        if not cpath.is_file():
+            raise CFSException(
+                f'File System Error (occurred during gethash on cpath: {cpath}):\n'
+                f'get hash can only be used on Files'
+            )
         try:
             BLOCKSIZE = 65536
             hasher = hashlib.sha1()
