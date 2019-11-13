@@ -1,6 +1,6 @@
 from unittest import TestCase
 from json import dumps, loads
-from ContentFS.cpath import CRoot
+from ContentFS.cpaths.croot import CRoot
 from ContentFS.ignorer import Ignorer
 
 
