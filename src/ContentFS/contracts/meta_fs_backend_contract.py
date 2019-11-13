@@ -1,11 +1,7 @@
 import abc
 
 
-class BaseFsBackendContract(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def open(self, path, *args, **kwargs):
-        """Return a file object"""
-
+class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def exists(self, path):
         """Checks existence of path"""
@@ -23,17 +19,9 @@ class BaseFsBackendContract(metaclass=abc.ABCMeta):
         """Lists a directory"""
 
     @abc.abstractmethod
-    def makedirs(self, path):
-        """Makes directories recursively"""
-
-    @abc.abstractmethod
     def getmtime(self, path):
         """Get modification? time"""
 
     @abc.abstractmethod
     def getctime(self, path):
         """Get last metadata change or creation time (on windows)"""
-
-    @abc.abstractmethod
-    def remove(self, path):
-        """Removes the path"""
