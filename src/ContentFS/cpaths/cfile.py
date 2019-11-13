@@ -2,11 +2,10 @@ from ContentFS.cpaths.cpath import CPath
 
 
 class CFile(CPath):
-    def __init__(self, names, mtime, size, file_hash=None):
+    def __init__(self, names, mtime, size):
         super().__init__(names)
         self.__size = size
         self.__mtime = mtime
-        self.__hash = file_hash
 
     @property
     def size(self):
@@ -16,10 +15,6 @@ class CFile(CPath):
     def mtime(self):
         return self.__mtime
 
-    @property
-    def hash(self):
-        return self.__hash
-
     def is_file(self):
         return True
 
@@ -27,7 +22,7 @@ class CFile(CPath):
         return not self.is_file()
 
     def equals(self, another):
-        return another.is_file() and super().equals(another) and self.mtime == another.mtime and self.size == another.size
+        return another.is_file() and self.names == another.names and self.mtime == another.mtime and self.size == another.size
 
     def to_dict(self):
         dct = super().to_dict()

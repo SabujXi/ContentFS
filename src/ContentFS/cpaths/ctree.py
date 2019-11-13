@@ -93,4 +93,4 @@ class CTree(CPath):
         return pdct
 
     def equals(self, another):
-        return another.is_dir() and super().equals(another)
+        return another.is_dir() and self.names == another.names
