@@ -105,7 +105,7 @@ class CRoot(CTree):
         raise NotImplemented()
 
     def to_list(self):
-        return [child.to_path_dict() for child in self.get_children()]
+        return [child.to_dict() for child in self.get_children()]
 
     def to_json(self):
         return dumps(self.to_list())
