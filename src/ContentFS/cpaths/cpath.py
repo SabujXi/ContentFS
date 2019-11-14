@@ -81,4 +81,7 @@ class CPath:
         return dumps(self.to_dict())
 
     def equals(self, another):
+        return self.equals_by_path(another)
+
+    def equals_by_path(self, another):
         return self.names == another.names and self.get_type() == another.get_type()

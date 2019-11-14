@@ -22,7 +22,14 @@ class CFile(CPath):
         return not self.is_file()
 
     def equals(self, another):
-        return another.is_file() and self.names == another.names and self.mtime == another.mtime and self.size == another.size
+        return self.equals_by_size_timestamp(another)
+
+    def equals_by_size(self, another):
+        return self.equals_by_path(another) and self.size == another.size
+
+    def equals_by_size_timestamp(self, another):
+        """Equality by timestamp and size"""
+        return self.equals_by_size(another) and self.mtime == another.mtime
 
     def to_dict(self):
         dct = super().to_dict()

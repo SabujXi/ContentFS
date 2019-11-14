@@ -16,7 +16,7 @@ class CDir(CPath):
         return dct
 
     def equals(self, another):
-        return another.is_dir() and self.names == another.names
+        return self.equals_by_path(another)
 
     def __str__(self):
         return "CDir: " + self.path

@@ -11,7 +11,10 @@ class CFileHashed(CFile):
         return self.__hash
 
     def equals(self, another):
-        return super().equals(another) and self.hash == another.hash
+        return self.equals_by_hash(another)
+
+    def equals_by_hash(self, another):
+        return self.equals_by_path(another) and self.hash == another.hash
 
     def to_dict(self):
         dct = super().to_dict()
