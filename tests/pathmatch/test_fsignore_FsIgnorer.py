@@ -57,3 +57,23 @@ class TestFsIgnorer(TestCase):
             FsIgnorer("a/**/[!0-8]z")
                 .ignore(CPath("a/b/c/d/8z"))
         )
+
+        self.assertTrue(
+            FsIgnorer("a/**/z")
+                .ignore(CPath("a/z"))
+        )
+
+        self.assertFalse(
+            FsIgnorer("a/**/z")
+                .ignore(CPath("a/b/z/c/z"))
+        )
+
+        self.assertFalse(
+            FsIgnorer("a/**/z")
+                .ignore(CPath("a/b/z/c/z"))
+        )
+
+        self.assertFalse(
+            FsIgnorer("a/**/z/q/z")
+                .ignore(CPath("a/b/z/c/z"))
+        )
