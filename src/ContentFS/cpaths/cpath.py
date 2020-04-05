@@ -34,11 +34,12 @@ class CPath:
             if len(self.__names) == 0:
                 self.__is_dir = True
             else:
-                end_char = None
+                self.__is_dir = False
                 if isinstance(names, (str, bytes)):
                     end_char = names[-1]
                 else:
                     end_char = names[-1][-1]
+
                 if end_char in ("\\", "/"):
                     self.__is_dir = True
         else:
