@@ -1,5 +1,6 @@
 import abc
 import typing
+import re
 from ContentFS.cpaths.cpath import CPath
 from collections import deque
 
@@ -12,9 +13,48 @@ class AbcMatcher(metaclass=abc.ABCMeta):
 class CompMatcher(AbcMatcher):
     def __init__(self, comp):
         self.__comp = comp
+        self.__pat = None
+        _pats = []
+        chars = deque(self.__comp)
+        while len(chars) > 0:
+            char = chars.popleft()
+            if char == '*':
+                _pats.append(r'.*?')
+            elif char == '?':
+                _pats.append(r'.{1}')
+            elif char == '[':
+                if len(chars) == 0:
+                    _pats.append(re.escape(char))
+                elif len(chars) == 1 and "".join(chars[0:2]) == '[!':
+                    _pats.append(re.escape('[!'))
+                    chars.clear()
+                elif ']' not in chars:
+                    _pats.append(re.escape(''.join(chars)))
+                    chars.clear()
+                else:
+                    range_chars = []
+                    # TODO: validate that the chars inside [..] or [!..] are valid range chars
+                    next_char = chars.popleft()
+                    is_negative = False
+                    if next_char == '!':
+                        is_negative = True
+                    else:
+                        range_chars.append(next_char)
+                    while len(chars) > 0:
+                        next_char = chars.popleft()
+                        if next_char == ']':
+                            break
+                        else:
+                            range_chars.append(next_char)
+                    if is_negative:
+                        range_chars.insert(0, '^')
+                    _pats.append(f'[{"".join(range_chars)}]')
+            else:
+                _pats.append(re.escape(char))
+        self.__pat = re.compile(f"^{''.join(_pats)}$")
 
-    def matches(self, path_comp):
-        pass
+    def matches(self, path_comp: str):
+        return bool(self.__pat.match(path_comp))
 
 
 class DoubleAsteriskMatcher(AbcMatcher):
