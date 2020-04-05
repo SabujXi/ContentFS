@@ -5,7 +5,7 @@ from collections import deque
 
 
 class AbcMatcher(metaclass=abc.ABCMeta):
-    def matches(self, param):
+    def matches(self, *params):
         pass
 
 
@@ -21,8 +21,30 @@ class DoubleAsteriskMatcher(AbcMatcher):
     def __init__(self, comp):
         self.__comp = comp
 
-    def matches(self, components):
-        pass
+    def matches(self, current_path_comp, path_components, matchers):
+        # hard part
+        if len(matchers) == 0:
+            # zero or more paths eaten by current double asterisks
+            path_components.clear()
+            # this last double asterisks matches the rest of the path components.
+            return True
+        else:
+            next_matcher: CompMatcher = matchers.popleft()
+            next_path_comp = current_path_comp  # double asterisk can match zero path comp, that's why the current path
+            # comp is taken into consideration.
+            next_matched = False
+            while len(path_components) > 0:  # the target is to engulf the path components by next matcher.
+                if next_matcher.matches(next_path_comp):
+                    # the work of double asterisk ends here. next patterns please.
+                    next_matched = True
+                    break
+                else:
+                    # let's match the next path component. with the matcher.
+                    next_path_comp = path_components.popleft()
+            if next_matched:
+                return True
+            else:
+                return False
 
 
 class PathMatcher:
@@ -80,28 +102,11 @@ class PathMatcher:
             else:
                 assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer Error"
                 # hard part
-                if len(matchers) == 0:
-                    # zero or more paths eaten by current double asterisks
-                    path_components.clear()
-                    # this last double asterisks matches the rest of the path components.
-                    break
+                double_asterisk_matched = matcher.matches(path_comp, path_components, matchers)
+                if double_asterisk_matched:
+                    continue
                 else:
-                    next_matcher = matchers.popleft()
-                    next_path_comp = path_comp
-                    next_matched = False
-                    while len(path_components) > 0:  # the target is to engulf the path components by next matcher.
-                        if next_matcher.matches(next_path_comp):
-                            # the work of double asterisk ends here. next patterns please.
-                            next_matched = True
-                            break
-                        else:
-                            # let's match the next path component. with the matcher.
-                            next_path_comp = path_components.popleft()
-                    if next_matched:
-                        continue
-                    else:
-                        matched = False
-                        break
+                    break
 
         if self.is_negative:
             return not matched
