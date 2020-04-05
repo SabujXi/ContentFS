@@ -1,0 +1,2 @@
+class PathMatchError(Exception):
+    pass
