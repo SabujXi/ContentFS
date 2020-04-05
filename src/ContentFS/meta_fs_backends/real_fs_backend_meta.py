@@ -6,7 +6,7 @@ from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContra
 from ContentFS.exceptions import CFSException
 
 
-class MetaFileSystemBackend(BaseMetaFsBackendContract):
+class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
     def __init__(self, base_path):
         self.__base_path = base_path
 
@@ -69,7 +69,7 @@ class MetaFileSystemBackend(BaseMetaFsBackendContract):
                 f'File System Error (occurred during getsize on cpath: {cpath}):\n'
             )
         try:
-            res = os.path.getsize(cpath.path)
+            res = os.path.getsize(self._full_path(cpath))
         except (OSError, IOError) as e:
             raise CFSException(
                 f'File System Error (occurred during gethash on cpath: {cpath}):\n'
