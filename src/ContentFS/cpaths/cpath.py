@@ -10,7 +10,7 @@ class CPath:
         path_string = path_string.replace("\\", "/")
         return CPath.SPLIT_RE.split(path_string)
 
-    def __init__(self, names):
+    def __init__(self, names, is_dir=None):
         """
         names can be string/byte path or list/tuple of string/byte paths.
         :param names:
@@ -28,18 +28,21 @@ class CPath:
                 _names.extend(_name for _name in self.path_to_names(name) if _name)
         self.__names = tuple(_names)
 
+        # path ends with slash or not, it can be a directory. but path ends with a slash cannot be a file path.
         # check whether it is a dir or file looking at the end of the `names`
-        self.__is_dir = False
-        if len(self.__names) == 0:
-            self.__is_dir = True
-        else:
-            end_char = None
-            if isinstance(names, (str, bytes)):
-                end_char = names[-1]
-            else:
-                end_char = names[-1][-1]
-            if end_char in ("\\", "/"):
+        if is_dir is None:
+            if len(self.__names) == 0:
                 self.__is_dir = True
+            else:
+                end_char = None
+                if isinstance(names, (str, bytes)):
+                    end_char = names[-1]
+                else:
+                    end_char = names[-1][-1]
+                if end_char in ("\\", "/"):
+                    self.__is_dir = True
+        else:
+            self.__is_dir = is_dir
         # cached results
         self.__cached_path = None
 
