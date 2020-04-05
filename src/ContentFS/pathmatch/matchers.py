@@ -12,6 +12,7 @@ class AbcMatcher(metaclass=abc.ABCMeta):
 
 class CompMatcher(AbcMatcher):
     def __init__(self, comp):
+        assert comp, "Programmer Error"
         self.__comp = comp
         self.__pat = None
         _pats = []
