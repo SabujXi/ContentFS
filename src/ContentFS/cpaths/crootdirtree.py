@@ -4,7 +4,7 @@ from ContentFS.cpaths.cpath import CPath
 from ContentFS.cpaths.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cdiff import CDiff
-from ContentFS.ignorer import Ignorer
+from ContentFS.pathmatch.ignorer import Ignorer
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 
 

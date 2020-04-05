@@ -1,7 +1,7 @@
 from unittest import TestCase
 from json import dumps, loads
 from ContentFS.cpaths.crootdirtree import CRootDirTree
-from ContentFS.ignorer import Ignorer
+from ContentFS.pathmatch.ignorer import Ignorer
 
 
 class TestCRoot(TestCase):
