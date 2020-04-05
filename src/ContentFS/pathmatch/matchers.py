@@ -60,6 +60,7 @@ class CompMatcher(AbcMatcher):
 
 class DoubleAsteriskMatcher(AbcMatcher):
     def __init__(self, comp):
+        assert comp == '**'
         self.__comp = comp
 
     def matches(self, current_path_comp, path_components, matchers):
@@ -112,7 +113,7 @@ class PathMatcher:
     def is_root_relative(self):
         return self.__is_root_relative
 
-    def match(self, cpath: CPath):
+    def matches(self, cpath: CPath):
         if cpath.is_file() and self.directories_only:
             # path to be matched is a file but this pattern will only match directories
             return False
