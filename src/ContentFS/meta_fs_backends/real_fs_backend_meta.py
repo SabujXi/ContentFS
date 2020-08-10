@@ -1,9 +1,9 @@
 import os
 import os.path
-import hashlib
 from ContentFS.cpaths.cpath import CPath
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.exceptions import CFSException
+from ContentFS import config
 
 
 class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
@@ -85,7 +85,7 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
             )
         try:
             BLOCKSIZE = 65536
-            hasher = hashlib.sha1()
+            hasher = config.HASHER
             with open(self._full_path(cpath), 'rb') as afile:
                 buf = afile.read(BLOCKSIZE)
                 while len(buf) > 0:
