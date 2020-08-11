@@ -3,7 +3,7 @@ from ContentFS.cpaths.cpath import CPath
 
 class CDir(CPath):
     def __init__(self, names):
-        super().__init__(names)
+        super().__init__(names, True)
 
     def is_file(self):
         return False

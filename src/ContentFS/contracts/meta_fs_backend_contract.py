@@ -3,6 +3,15 @@ import abc
 
 class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
     @abc.abstractmethod
+    def set_base_path(self, base_path):
+        """Base path for performing different operations"""
+
+    @property
+    @abc.abstractmethod
+    def base_path(self):
+        pass
+
+    @abc.abstractmethod
     def exists(self, path):
         """Checks existence of path"""
 

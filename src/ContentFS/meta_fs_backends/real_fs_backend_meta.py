@@ -7,11 +7,21 @@ from ContentFS import config
 
 
 class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
-    def __init__(self, base_path):
+    def __init__(self):
+        self.__base_path = None
+
+    def set_base_path(self, base_path: str):
+        # Should I restrict to setting only once???
         self.__base_path = base_path
 
+    @property
+    def base_path(self):
+        bp = self.__base_path
+        assert bp is not None
+        return bp
+
     def _full_path(self, cpath: CPath):
-        return os.path.join(self.__base_path, cpath.path)
+        return os.path.join(self.base_path, cpath.path)
 
     def exists(self, cpath: CPath):
         try:

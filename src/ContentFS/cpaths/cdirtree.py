@@ -13,6 +13,7 @@ class CDirTree(CDir):
         assert isinstance(cpath, CPath)
         assert cpath.names[:-1] == self.names, f"cpath.names {cpath.names} cpath.names[:-1] {cpath.names[:-1]}, self.names {self.names}"
         assert cpath.name not in self._child_map, "Cannot add a child twice"
+        assert cpath.is_rel, "Cannot add absolute path to a tree"
         self._child_map[cpath.name] = cpath
 
     def find_child(self, name):
