@@ -95,7 +95,7 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
             )
         try:
             BLOCKSIZE = 65536
-            hasher = config.HASHER
+            hasher = config.HASHER()
             with open(self._full_path(cpath), 'rb') as afile:
                 buf = afile.read(BLOCKSIZE)
                 while len(buf) > 0:

@@ -9,4 +9,4 @@ VERSION = {
     'hasher': 'sha1'
 }
 
-HASHER = hashlib.sha1()
+HASHER = hashlib.sha1

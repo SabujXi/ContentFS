@@ -3,6 +3,7 @@ from json import dumps
 from ContentFS.cpaths.cpath import CPath
 from ContentFS.cpaths.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
+from ContentFS.cpaths.cfile_hashed import CFileHashed
 from ContentFS.cdiff import CDiff
 from ContentFS.pathmatch.fsignore import FsIgnorer as Ignorer
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
@@ -24,7 +25,7 @@ class CRootDirTree(CDirTree):
     def base_path(self):
         return self.__base_path
 
-    def __list(self, parent: CPath):
+    def __list(self, parent: CPath, do_hash=False):
         assert isinstance(parent, CDirTree)
         path_names = self.__fs.listdir(parent)
         parent_names = parent.names
@@ -34,19 +35,23 @@ class CRootDirTree(CDirTree):
             if self.__fs.is_file(child_cpath):
                 mtime = self.__fs.getmtime(child_cpath)
                 cpath = CFile(names, mtime, self.__fs.getsize(child_cpath))
+
+                if do_hash:
+                    hash_value = self.__fs.gethash(cpath)
+                    cpath = CFileHashed(cpath.names, cpath.mtime, cpath.size, hash_value)
             else:
                 cpath = CDirTree(names)
 
             if self.__ignorer and self.__ignorer.ignore(cpath):
                 continue
             if cpath.is_dir():
-                self.__list(cpath)
+                self.__list(cpath, do_hash=do_hash)
             parent.add_child(cpath)
 
-    def load(self):
+    def load(self, do_hash=False):
         if self.__loaded:
             raise Exception("Can load only once")
-        self.__list(self)
+        self.__list(self, do_hash=do_hash)
         self.__loaded = True
 
     def diff(self, another_root):
