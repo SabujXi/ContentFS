@@ -46,11 +46,24 @@ def gitignore_parser(text: str) -> List[PathMatcher]:
         # If there is a separator at the beginning or middle (or both) of the pattern, then the pattern is relative to
         # the directory level of the particular .gitignore file itself. Otherwise the pattern may also match at
         # any level below the .gitignore level.
+        if '\\' in line:  # backward `\` slash is just invalid in git (?) (tested true on linux,
+                          # TODO: gotta test on windows)
+            "bail out"
+            continue
         path_comps = line.split('/')
         if path_comps[0] == '':
-            del path_comps[0]  # "/" will return empty path comps? TODO: have a closer look and test.
-        if len(path_comps) == 1:
-            is_root_relative = False
+            if len(path_comps) == 1:
+                assert line == "/", "Programmer error"
+                "Invalid rule. A single forward slash as rule is just invalid/outside the repo, so ignore it"
+                "bail out"
+                # That was the answer for: "/" will return empty path comps? DONE: have a closer look and test.
+                continue
+            else:
+                del path_comps[0]
+        else:
+            "The first char is not / (path_comps[0]='' after split by /), so if there is only one comp, then..."
+            if len(path_comps) == 1:
+                is_root_relative = False
 
         _path_comps = []
         # reduce consecutive double asterisks
