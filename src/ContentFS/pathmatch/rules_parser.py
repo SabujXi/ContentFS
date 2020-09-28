@@ -1,8 +1,16 @@
 import re
 from .matchers import DoubleAsteriskMatcher, CompMatcher, PathMatcher
+from typing import List
 
 
-def gitignore_parser(text):
+def gitignore_parser(text: str) -> List[PathMatcher]:
+    """
+    Git ingnore rule will be fed into this function as text/string.
+    This function will parse them and return a list of PathMatcher.
+    That list of path matchers will further be used for matching or rejecting paths.
+    :param text: gitignore rules text
+    :return:
+    """
     _lines = re.split(r'\n\r|\n|\r', text)
     path_matchers = []
     # Put a backslash ("\") in front of the first hash for patterns that begin with a hash.

@@ -6,6 +6,9 @@ from collections import deque
 
 
 class AbcMatcher(metaclass=abc.ABCMeta):
+    """
+    Abstract base class for matchers.
+    """
     def matches(self, *params):
         pass
 
@@ -20,7 +23,18 @@ class CompMatcher(AbcMatcher):
         while len(chars) > 0:
             char = chars.popleft()
             if char == '*':
-                _pats.append(r'.*?')
+                "Consecutive double asterisks are literal couple of double asterisk when this couple are not standing "
+                " alone like **/z, a/** or a/**/z but standing inside a component like a/x**X/z"
+                "Let's forward check it."
+                if len(chars) != 0 and chars[0] == "*":
+                    "Boom... double literal asterisk detected"
+                    "Let's remove this dumbass that will help the loop move forward discarding this stupid"
+                    chars.popleft()
+                    _pats.append(re.escape("**"))
+                else:
+                    "Only single asterisk or the asterisk that could not make couple - like the third one in *** - "
+                    " are the kings, the patterns"
+                    _pats.append(r'.*?')
             elif char == '?':
                 _pats.append(r'.{1}')
             elif char == '[':
@@ -91,27 +105,43 @@ class DoubleAsteriskMatcher(AbcMatcher):
 
 
 class PathMatcher:
-    def __init__(self, matchers: typing.List, line_original: str, is_negative: bool, only_directories: bool, is_root_relative: bool):
-        self.__matchers = matchers
-        self.__line_original = line_original
-        self.__is_negative = is_negative
-        self.__only_directories = only_directories
-        self.__is_root_relative = is_root_relative
+    """PathMatcher is intended to be constructed by rules_parser and not by manually/by hand"""
+    def __init__(self, matchers: typing.List[AbcMatcher], line_original: str, is_negative: bool, only_directories: bool, is_root_relative: bool):
+        self.__matchers: typing.Tuple[AbcMatcher] = tuple(matchers)
+        self.__line_original: str = line_original
+        self.__is_negative: bool = is_negative
+        self.__only_directories: bool = only_directories
+        self.__is_root_relative: bool = is_root_relative
 
     @property
-    def line(self):
+    def raw_rule(self):
+        """The line of text that was used"""
         return self.__line_original
 
     @property
-    def is_negative(self):
+    def matchers(self) -> typing.Tuple[AbcMatcher]:
+        return self.__matchers
+
+    @property
+    def is_negative(self) -> bool:
+        """
+        this matcher was produced from a negative rule from gitignore rule that starts with a `!`
+        """
         return self.__is_negative
 
     @property
-    def directories_only(self):
+    def directories_only(self) -> bool:
+        """
+        This path matcher will only match directories because the rule ended with a slash `/`
+        """
         return self.__only_directories
 
     @property
-    def is_root_relative(self):
+    def is_root_relative(self) -> bool:
+        """
+        This path mather was produced from a gitignore rule that had a separator `/` within it that makes it count the
+        rule to be applied from the root. It will not start matching from inner directories.
+        """
         return self.__is_root_relative
 
     def matches(self, cpath: CPath):
