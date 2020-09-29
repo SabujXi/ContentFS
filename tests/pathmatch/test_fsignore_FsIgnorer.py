@@ -6,6 +6,9 @@ from ContentFS.cpaths.cpath import CPath
 class TestFsIgnorer(TestCase):
     def test_ignore(self):
         self.assertTrue(
+            FsIgnorer("*.log").ignore(CPath("important/trace.log"))
+        )
+        self.assertTrue(
             FsIgnorer("a").ignore(CPath("a"))
         )
         self.assertTrue(

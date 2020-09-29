@@ -7,15 +7,30 @@ from ContentFS.cpaths.cpath import CPath
 class FsIgnorer:
     def __init__(self, text):
         self.__path_matchers: List[PathMatcher] = gitignore_parser(text)
-        self.__ignored_dirs = []
 
     def ignore(self, cpath: CPath) -> bool:
-        matched = False
+        ignored = False
+        print('-----')
         for matcher in self.__path_matchers:
-            if matcher.matches(cpath):
-                matched = True
-                break
-        return matched
+            if not matcher.is_negative:
+                if matcher.matches(cpath):
+                    ignored = True
+                    print(f'CPath: {cpath.path} - ignored by - ' + matcher.raw_rule)
+                    # negation pattern consideration
+                    #   when the path matcher is a directory pattern then no negation pattern will work
+                    #     it will be ignored outright
+                    if matcher.directories_only:  # no need of keeping track of directories list that are ignored
+                        # bail out - for performance reason imposed by gitignore doc
+                        break
+                    else:
+                        # but I have yet to see whether it will be negated by a negation pattern
+                        pass
+            else:
+                if matcher.matches_simple(cpath):
+                    ignored = False
+                    print(f'CPath: {cpath.path} - included by - ' + matcher.raw_rule)
+
+        return ignored
 
 
 # if cpath.name == '.git' and cpath.is_dir():

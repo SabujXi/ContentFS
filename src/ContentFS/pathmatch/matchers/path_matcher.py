@@ -47,11 +47,14 @@ class PathMatcher:
         """
         return self.__is_root_relative
 
-    def matches(self, cpath: CPath):
+    def matches_simple(self, cpath: CPath):
+        """
+        This method does not take into consideration whether the pattern is a negative pattern
+        """
         if cpath.is_file() and self.directories_only:
             # path to be matched is a file but this pattern will only match directories
             return False
-        if len(cpath.names) == 0:
+        if len(cpath.names) == 0:  # TODO: are cpath with zerom comp valid?
             return False
 
         matched = True
@@ -59,22 +62,31 @@ class PathMatcher:
         matchers: typing.Deque[AbcMatcher] = deque(self.__matchers)
 
         while True:
-            # no condition here as we have some nested checks and state changes that will be done at the beginning
-            # of the loop.
+            # no condition on while as we have some nested checks and state changes that will be done at the beginning
+            #   of the loop.
             if len(path_components) == 0 or len(matchers) == 0:
                 if len(path_components) != 0:
                     # all the paths were not consumed and thus the match is not completed.
                     matched = False
                 break
-            matcher: AbcMatcher = matchers.popleft()
 
+            matcher = matchers.popleft()
             if isinstance(matcher, CompMatcher):
-                path_comp = path_components.popleft()
-                if matcher.matches(path_comp):
-                    continue
+                if not self.is_root_relative:
+                    _matched = False
+                    while path_components:
+                        path_comp = path_components.popleft()
+                        if matcher.matches(path_comp) and len(path_components) == 0:
+                            _matched = True
+                    matched = _matched
+                    break  # as it is not root relative and the above while have consumed all path comp, bail out
                 else:
-                    matched = False
-                    break
+                    path_comp = path_components.popleft()
+                    if matcher.matches(path_comp):
+                        continue
+                    else:
+                        matched = False
+                        break
             else:
                 assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer Error"
                 # hard part
@@ -84,7 +96,10 @@ class PathMatcher:
                 else:
                     matched = False
                     break
+        return matched
 
+    def matches(self, cpath: CPath):
+        matched = self.matches_simple(cpath)
         if self.is_negative:
             return not matched
         else:
