@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ContentFS.pathmatch.matchers import DoubleAsteriskMatcher
+from ContentFS.pathmatch.matchers.basic_matchers import DoubleAsteriskMatcher
 
 
 class TestDoubleAsteriskMatcher(TestCase):
