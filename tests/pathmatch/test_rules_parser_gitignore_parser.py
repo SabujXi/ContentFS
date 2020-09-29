@@ -1,6 +1,7 @@
 from unittest import TestCase
 from ContentFS.pathmatch.rules_parser import gitignore_parser
-from ContentFS.pathmatch.matchers import CompMatcher, DoubleAsteriskMatcher
+from ContentFS.pathmatch.matchers.basic_matchers.component_matcher import CompMatcher
+from ContentFS.pathmatch.matchers.basic_matchers.double_asterisk_matcher import DoubleAsteriskMatcher
 from ContentFS.cpaths.cpath import CPath
 
 

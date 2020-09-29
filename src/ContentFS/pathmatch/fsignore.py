@@ -1,5 +1,5 @@
 from typing import List
-from ContentFS.pathmatch.matchers import PathMatcher
+from ContentFS.pathmatch.matchers.path_matcher import PathMatcher
 from ContentFS.pathmatch.rules_parser import gitignore_parser
 
 

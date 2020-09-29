@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ContentFS.pathmatch.matchers import CompMatcher
+from ContentFS.pathmatch.matchers.basic_matchers.component_matcher import CompMatcher
 
 
 class TestCompMatcher(TestCase):

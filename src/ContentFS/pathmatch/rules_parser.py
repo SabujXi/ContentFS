@@ -1,5 +1,7 @@
 import re
-from .matchers import DoubleAsteriskMatcher, CompMatcher, PathMatcher
+from .matchers.basic_matchers.double_asterisk_matcher import DoubleAsteriskMatcher
+from .matchers.basic_matchers.component_matcher import CompMatcher
+from .matchers.path_matcher import PathMatcher
 from typing import List
 
 
