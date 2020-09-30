@@ -4,10 +4,17 @@ from ContentFS.cpaths.cpath import CPath
 
 
 class TestFsIgnorer(TestCase):
-    def test_ignore(self):
+    def test_ignore__non_root_relative(self):
         self.assertTrue(
             FsIgnorer("*.log").ignore(CPath("important/trace.log"))
         )
+
+    def test_ignore__single_path_rule_root_relative(self):
+        self.assertFalse(
+            FsIgnorer("/a").ignore(CPath("b/a"))
+        )
+
+    def test_ignore__single_path_n_pattern(self):
         self.assertTrue(
             FsIgnorer("a").ignore(CPath("a"))
         )
@@ -18,10 +25,12 @@ class TestFsIgnorer(TestCase):
             FsIgnorer("a/").ignore(CPath("a"))
         )
 
+    def test_ignore__wildcard_middle(self):
         self.assertTrue(
             FsIgnorer("a/*/z").ignore(CPath("a/b/z"))
         )
 
+    def test_ignore__char_class(self):
         self.assertFalse(
             FsIgnorer("a/[!0-8]z").ignore(CPath("a/8z"))
         )
@@ -34,20 +43,13 @@ class TestFsIgnorer(TestCase):
             FsIgnorer("a/[!0-8]z").ignore(CPath("a/09z"))
         )
 
+    def test_ignore__double_asterisk(self):
         self.assertTrue(
             FsIgnorer("m/**").ignore(CPath("m/n/o9z"))
         )
 
         self.assertTrue(
             FsIgnorer("a/**/z").ignore(CPath("a/b/c/d/z"))
-        )
-
-        self.assertTrue(
-            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/9z"))
-        )
-
-        self.assertFalse(
-            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/8z"))
         )
 
         self.assertTrue(
@@ -64,6 +66,15 @@ class TestFsIgnorer(TestCase):
 
         self.assertFalse(
             FsIgnorer("a/**/z/q/z").ignore(CPath("a/b/z/c/z"))
+        )
+
+    def test_ignore__double_asterisk_w_char_class(self):
+        self.assertTrue(
+            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/9z"))
+        )
+
+        self.assertFalse(
+            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/8z"))
         )
 
     def test_ignore__negation(self):

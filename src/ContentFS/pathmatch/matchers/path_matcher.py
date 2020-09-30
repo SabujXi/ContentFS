@@ -59,7 +59,9 @@ class PathMatcher:
 
         matched = True
         path_components = deque(cpath.names)
+        _popped_path_components = deque()
         matchers: typing.Deque[AbcMatcher] = deque(self.__matchers)
+        _popped_matchers = deque()
 
         while True:
             # no condition on while as we have some nested checks and state changes that will be done at the beginning
@@ -71,17 +73,20 @@ class PathMatcher:
                 break
 
             matcher = matchers.popleft()
+            _popped_matchers.append(matcher)
             if isinstance(matcher, CompMatcher):
                 if not self.is_root_relative:
                     _matched = False
                     while path_components:
                         path_comp = path_components.popleft()
+                        _popped_path_components.append(path_comp)
                         if matcher.matches(path_comp) and len(path_components) == 0:
                             _matched = True
                     matched = _matched
                     break  # as it is not root relative and the above while have consumed all path comp, bail out
                 else:
                     path_comp = path_components.popleft()
+                    _popped_path_components.append(path_comp)
                     if matcher.matches(path_comp):
                         continue
                     else:
@@ -89,7 +94,7 @@ class PathMatcher:
                         break
             else:
                 assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer Error"
-                # hard part
+                # hard part # TODO: check and unittest if it is working correctly.
                 double_asterisk_matched = matcher.matches(path_components, matchers)
                 if double_asterisk_matched:
                     continue
