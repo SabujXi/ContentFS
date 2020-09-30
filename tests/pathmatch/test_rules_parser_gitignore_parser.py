@@ -2,111 +2,73 @@ from unittest import TestCase
 from ContentFS.pathmatch.rules_parser import gitignore_parser
 from ContentFS.pathmatch.matchers.basic_matchers.component_matcher import CompMatcher
 from ContentFS.pathmatch.matchers.basic_matchers.double_asterisk_matcher import DoubleAsteriskMatcher
-from ContentFS.cpaths.cpath import CPath
 
 
 class TestGitignore_parser(TestCase):
+    def test_gitignore_parser__count_rules(self):
+        path_matchers = gitignore_parser("""
+        # this is a comment - don't count.
+        # the following is invalid, don't count
+        /
+        **
+        /**
+        a/v
+        """)
+        self.assertEqual(len(path_matchers), 3)
+
     def test_gitignore_parser__negative(self):
         """Tests whether a negative rule passed come out as a negative path matcher"""
+        path_matcher1 = gitignore_parser("!a")[0]
         self.assertTrue(
-            gitignore_parser("!a")[0].is_negative
+            path_matcher1.is_negative
         )
 
+        path_matcher2 = gitignore_parser("!a/b/c")[0]
         self.assertTrue(
-            gitignore_parser("!a/b/c")[0].is_negative
+            path_matcher2.is_negative
+        )
+
+    def test_gitignore_parser__literal_negation_sign(self):
+        "Literal starting bang !"
+        path_matcher3 = gitignore_parser(r"\!a/b/c")[0]
+        self.assertFalse(
+            path_matcher3.is_negative
         )
 
     def test_gitignore_parser__directories_only(self):
         """Tests whether a pattern that is only for directories come out as directories only path matcher"""
-
+        path_matcher1 = gitignore_parser("a/")[0]
         self.assertTrue(
-            gitignore_parser("a/")[0].directories_only
+            path_matcher1.directories_only
         )
 
+        path_matcher2 = gitignore_parser("!/z/a/")[0]
         self.assertTrue(
-            gitignore_parser("!/z/a/")[0].directories_only
+            path_matcher2.directories_only
         )
 
     def test_gitignore_parser__root_relative(self):
         """Tests whether a rule that is root relative come out as root relative path matcher"""
+        path_matcher1 = gitignore_parser("/a/c/b")[0]
         self.assertTrue(
-            gitignore_parser("/a/c/b")[0].is_root_relative
+            path_matcher1.is_root_relative
         )
 
+        path_matcher2 = gitignore_parser("a**b")[0]
         self.assertFalse(
-            gitignore_parser("a**b")[0].is_root_relative
+            path_matcher2.is_root_relative
         )
 
-    def test_gitignore_parser__root_relative_prepended_slash(self):
+    def test_gitignore_parser__prepended_slash_root_relative(self):
         "Prepending something with just a slash that is just a single directory will make it root relative"
         self.assertTrue(
             gitignore_parser("/a.*")[0].is_root_relative
         )
 
-    def test_gitignore_parser__root_relative_appended_slash(self):
+    def test_gitignore_parser__appended_slash_non_root_relative(self):
         "But appending something with just a slash that is just a single directory will not make it root relative"
         self.assertFalse(
             gitignore_parser("a/")[0].is_root_relative
-        )
-
-    def test_gitignore_parser__matches_negative(self):
-        """Tests whether negative matching works properly"""
-        self.assertFalse(
-            gitignore_parser("!a")[0].matches(CPath("b"))
-        )
-
-        self.assertFalse(
-            gitignore_parser("!a")[0].matches(CPath("a"))
-        )
-
-    def test_gitignore_parser__matches_directories_only(self):
-        """Tests whether directories only rule matchers properly"""
-        path_rule1 = gitignore_parser("z/?u*ns/")[0]
-        "This is a directories only rule"
-        self.assertTrue(
-            path_rule1.directories_only
-        )
-        "And it matches as it should be"
-        self.assertTrue(
-            path_rule1.matches(
-                CPath("z/humans/")
-            )
-        )
-
-        path_rule2 = gitignore_parser("z/?uman")[0]
-        "This is NOT a directories only rule"
-        self.assertFalse(
-            path_rule2.directories_only
-        )
-        "But it matches as it should be"
-        self.assertTrue(
-            path_rule2.matches(CPath("z/human"))
-        )
-        "It matches both filesCpath (above) and directories (below)"
-        self.assertTrue(
-            path_rule2.matches(CPath("z/human/"))
-        )
-
-    def test_gitignore_parser__matches_root_relative(self):
-        """Tests whether the produced rule behaves well when it is root relative"""
-        path_rule1 = gitignore_parser("a/*/z")[0]
-        self.assertTrue(
-            path_rule1.is_root_relative
-        )
-        "It matches a path that is root relative"
-        self.assertTrue(
-            path_rule1.matches(CPath("a/b/z"))
-        )
-        "But it doesn't match inner path"
-        self.assertFalse(
-            path_rule1.matches(CPath("1/a/b/z"))
-        )
-
-        "But if the rule is not root relative"
-        path_rule2 = gitignore_parser("a*z")[0]
-
-        self.assertTrue(
-            path_rule2.matches(CPath("ayz"))
         )
 
     def test_gitignore_parser__matchers_double_asterisks(self):
@@ -119,6 +81,11 @@ class TestGitignore_parser(TestCase):
         )
         self.assertIsInstance(
             path_rule1.matchers[0], CompMatcher
+        )
+
+        path_rule2 = gitignore_parser("/a/**/b/**/b/b/")[0]
+        self.assertEqual(
+            len(path_rule2.matchers), 6
         )
 
     def test_gitignore_parser__matchers_literal_double_asterisks(self):
@@ -142,5 +109,3 @@ class TestGitignore_parser(TestCase):
         self.assertIsInstance(
             path_rule1.matchers[0], CompMatcher
         )
-
-

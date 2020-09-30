@@ -26,17 +26,27 @@ def gitignore_parser(text: str) -> List[PathMatcher]:
         line = line.strip()
         if not line:
             continue
+        if line == "/":
+            "Invalid rule. A single forward slash as rule is just invalid/outside the repo, so ignore it"
+            "bail out"
+            # That was the answer for: "/" will return empty path comps? DONE: have a closer look and test.
+            continue
         # A line starting with # serves as a comment.
         if line.startswith('#'):
             continue
-        # Put a backslash ("\") in front of the first hash for patterns that begin with a hash.
-        if line.startswith(r'\#'):
-            line = line[1:]
         # An optional prefix "!" which negates the pattern; any matching file excluded by a previous pattern will become
         # included again.
         if line.startswith('!'):
             is_negative = True
             line = line[1:]
+
+        if line.startswith('\\'):
+            # Put a backslash ("\") in front of the first hash for patterns that begin with a hash.
+            if line.startswith(r'\#'):
+                line = line[1:]
+            # At the Put a backslash in front of the ! put \ to make it literal
+            if line.startswith(r'\!'):
+                line = line[1:]
 
         # now replace the consecutive seps |: not in the rule though
         line = re.sub(r'/+', r'/', line)
@@ -54,14 +64,7 @@ def gitignore_parser(text: str) -> List[PathMatcher]:
             continue
         path_comps = line.split('/')
         if path_comps[0] == '':
-            if len(path_comps) == 1:
-                assert line == "/", "Programmer error"
-                "Invalid rule. A single forward slash as rule is just invalid/outside the repo, so ignore it"
-                "bail out"
-                # That was the answer for: "/" will return empty path comps? DONE: have a closer look and test.
-                continue
-            else:
-                del path_comps[0]
+            del path_comps[0]
         else:
             "The first char is not / (path_comps[0]='' after split by /), so if there is only one comp, then..."
             if len(path_comps) == 1:

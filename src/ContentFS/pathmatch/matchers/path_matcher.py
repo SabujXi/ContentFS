@@ -70,9 +70,8 @@ class PathMatcher:
         # -> here is the bug when it was not acting accordingly: logs/ pattern also ignores logs/important.log
         #       <- coz it's parent ignored
         #     # path to be matched is a file but this pattern will only match directories
-        #     print(f'DIRS ONLY, RET-FALSE: {self.raw_rule}: {cpath.path}')
         #     return False
-        if len(cpath.names) == 0:  # TODO: are cpath with zerom comp valid?
+        if len(cpath.names) == 0:  # TODO: are cpath with zero comp valid?
             return False
 
         # initial assumption that it matched the path - you have to prove it wrong by setting False where possible
@@ -90,7 +89,6 @@ class PathMatcher:
                 path_comp = path_components.popleft()
                 if not matcher.matches(path_comp):
                     if self.is_root_relative:
-                        print(f'ROOT RELATIVE: {self.raw_rule}: {cpath.path}')
                         matched = False
                         break  # no more conditions (at the end) or something. it ends here. it will not match.
                     else:
@@ -102,9 +100,7 @@ class PathMatcher:
                                 _finally_matched = True
                         matched = _finally_matched
                         if matched is False:
-                            print(f'FINALLY NOT MATCHED: {self.raw_rule}: {cpath.path}')
                             break  # we tried till the last blood, but it doesn't matter, didn't match. so no condition at the end.
-                        print(f'FINALLY MATCHED: {self.raw_rule}: {cpath.path}')
             else:
                 assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer's Error"
 
@@ -136,7 +132,6 @@ class PathMatcher:
 
             assert matched is True, "No way to reach here unless matched is true. Programmer's Error."
 
-            print(f'FINAL CHECK: {self.raw_rule}: {cpath.path}')
             # all matchers are done
 
             if len(path_components) == 0 or len(matchers) == 0:
