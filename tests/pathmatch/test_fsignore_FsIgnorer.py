@@ -142,3 +142,12 @@ class TestFsIgnorer(TestCase):
         self.assertTrue(
             fs_ignore.ignore(CPath("logs/important.log"))
         )
+
+    def test_ignore__everything_inside_dir(self):
+        fs_ignore = FsIgnorer("logs/")
+        self.assertTrue(
+            fs_ignore.ignore(CPath("logs/a"))
+        )
+        self.assertTrue(
+            fs_ignore.ignore(CPath("logs/b.txt"))
+        )
