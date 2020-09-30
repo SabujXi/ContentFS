@@ -60,10 +60,18 @@ class PathMatcher:
             Look: when paths are not root relative, I start checking from the beginning of the path and go to the end.
                 But, I could stop at the end when the end did not match, it will also make the path matcher performant.
                 It will also solve confusion with double asterisk with putting some conditions.
+        New strategy failed:
+            It works best for non root relative but not for root relative and directory
+        
+        Next strategy:
+            ...
         """
-        if cpath.is_file() and self.directories_only:
-            # path to be matched is a file but this pattern will only match directories
-            return False
+        # if cpath.is_file() and self.directories_only:
+        # -> here is the bug when it was not acting accordingly: logs/ pattern also ignores logs/important.log
+        #       <- coz it's parent ignored
+        #     # path to be matched is a file but this pattern will only match directories
+        #     print(f'DIRS ONLY, RET-FALSE: {self.raw_rule}: {cpath.path}')
+        #     return False
         if len(cpath.names) == 0:  # TODO: are cpath with zerom comp valid?
             return False
 
@@ -76,51 +84,76 @@ class PathMatcher:
             # no condition on while as we have some nested checks and state changes that will be done at the beginning
             #   of the loop.
 
-            # pull out the right most matcher
-            matcher = matchers.pop()
+            # pull out the left most matcher
+            matcher = matchers.popleft()
             if isinstance(matcher, CompMatcher):
-                path_comp = path_components.pop()
+                path_comp = path_components.popleft()
                 if not matcher.matches(path_comp):
-                    matched = False
+                    if self.is_root_relative:
+                        print(f'ROOT RELATIVE: {self.raw_rule}: {cpath.path}')
+                        matched = False
+                        break  # no more conditions (at the end) or something. it ends here. it will not match.
+                    else:
+                        # let's try until the end - as this rule/pattern/matcher is not tied to the root.
+                        _finally_matched = False
+                        while path_components:
+                            path_comp = path_components.popleft()
+                            if matcher.matches(path_comp):
+                                _finally_matched = True
+                        matched = _finally_matched
+                        if matched is False:
+                            print(f'FINALLY NOT MATCHED: {self.raw_rule}: {cpath.path}')
+                            break  # we tried till the last blood, but it doesn't matter, didn't match. so no condition at the end.
+                        print(f'FINALLY MATCHED: {self.raw_rule}: {cpath.path}')
             else:
                 assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer's Error"
 
-                # keep going backward until a CompMatcher matches
-                # check if current path comp matches with any previous path comp matcher
+                # keep going forward until a CompMatcher matches
+                # check if current path comp matches with any next path comp matcher
 
-                # get the next left rule that is CompMatcher
+                # get the next rule that is CompMatcher
                 if len(matchers) > 0:
+                    comp_matcher: CompMatcher
                     while isinstance(matcher, DoubleAsteriskMatcher):
                         # using while loop to get single element - instead of using `if`
-                        matcher = matchers.pop()
-                        assert isinstance(matcher, CompMatcher), 'Programmer\'s Error - consecutive double ' \
+                        comp_matcher = matcher = matchers.popleft()
+                        assert isinstance(comp_matcher, CompMatcher), 'Programmer\'s Error - consecutive double ' \
                                                                  'asterisk pairs are not eliminated in rules parser'
-                    # which of the left path comps matches with this matcher?
-                    _a_left_path_comp_matched = False
+                    # which of the right path comps matches with this matcher?
+                    _next_path_comp_matched = False
                     while len(path_components) > 0:
-                        path_comp = path_components.pop()
-                        if matcher.matches(path_comp):
-                            _a_left_path_comp_matched = True
+                        path_comp = path_components.popleft()
+                        if comp_matcher.matches(path_comp):
+                            _next_path_comp_matched = True
                             break
 
-                    if not _a_left_path_comp_matched:
+                    if not _next_path_comp_matched:
                         matched = False
+                        break  # bail out, nothing matters now.
                 else:
                     # everything to the left is engulfed by this double asterisk
                     path_components.clear()
 
-            if len(path_components) == 0 or len(matchers) == 0:
-                if len(matchers) == 0 \
-                        and matched is True \
-                        and not self.is_root_relative:
-                    # matchers are exhausted | no matter if path_components left or not.
-                    # none said that it was not a match
-                    # it is non root relative
+            assert matched is True, "No way to reach here unless matched is true. Programmer's Error."
 
-                    # it is matched no matter there is any path components left or not
-                    # matched = True holds
-                    ...
-                elif any([path_components, matchers]):  # if any of them are non empty.
+            print(f'FINAL CHECK: {self.raw_rule}: {cpath.path}')
+            # all matchers are done
+
+            if len(path_components) == 0 or len(matchers) == 0:
+                # path's subdirectory matches pattern - no matter if path_coms exhausted
+                # and no matter root relative or not
+                if len(matchers) == 0:
+                    if len(path_components) == 0 and cpath.is_file() and self.directories_only:
+                        # check if cpath is a file but the pattern was only for directories
+                        # e.g.: logs/ won't match CPath('logs')
+                        matched = False
+                        break
+                    else:
+                        # no matter whether all paths are exhausted or not.
+                        # logs/ -> logs/a, logs/a/
+                        break
+
+                if any([path_components, matchers]):  # if any of them are non empty.
                     # all the paths were not consumed and thus the match is not completed.
                     matched = False
                 break

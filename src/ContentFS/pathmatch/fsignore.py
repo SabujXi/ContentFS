@@ -21,6 +21,7 @@ class FsIgnorer:
                     #     it will be ignored outright
                     if matcher.directories_only:  # no need of keeping track of directories list that are ignored
                         # bail out - for performance reason imposed by gitignore doc
+                        print("Bail out for git performance issue")
                         break
                     else:
                         # but I have yet to see whether it will be negated by a negation pattern

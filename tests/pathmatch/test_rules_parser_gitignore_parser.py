@@ -51,7 +51,7 @@ class TestGitignore_parser(TestCase):
 
     def test_gitignore_parser__matches_negative(self):
         """Tests whether negative matching works properly"""
-        self.assertTrue(
+        self.assertFalse(
             gitignore_parser("!a")[0].matches(CPath("b"))
         )
 
