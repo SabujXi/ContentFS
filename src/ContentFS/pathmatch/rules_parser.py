@@ -85,9 +85,21 @@ def gitignore_parser(text: str) -> List[PathMatcher]:
 
         # build the match objects
         matcher_objects = []
-        for comp in path_comps:
+
+        idx = 0
+        while idx < len(path_comps):
+            comp = path_comps[idx]
+            idx += 1
+
             if comp == '**':
                 matcher = DoubleAsteriskMatcher(comp)
+                # Eliminate consecutive double asterisks  # TODO: write test case for this.
+                while idx < len(path_comps):
+                    _next_comp = path_comps[idx]
+                    if _next_comp == '**':
+                        idx += 1
+                    else:
+                        break
             else:
                 matcher = CompMatcher(comp)
             matcher_objects.append(matcher)

@@ -8,6 +8,7 @@ class DoubleAsteriskMatcher(AbcMatcher):
         self.__comp = comp
 
     def matches(self, path_components, matchers):
+        raise Exception("This method must not be used - path matcher handles double asterisk stuffs")
         # hard part
         if len(matchers) == 0:
             # zero or more paths eaten by current double asterisks

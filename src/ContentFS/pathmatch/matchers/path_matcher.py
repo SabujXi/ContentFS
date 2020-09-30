@@ -51,61 +51,86 @@ class PathMatcher:
         """
         This method does not take into consideration whether the pattern is a negative pattern
         """
+
+        """
+        New strategy:
+            To solve `test_ignore__negation_directory`
+            And to make things more future proof.
+            * Matching of path with pattern will start from the end of the path and pattern instead of the beginning.
+            Look: when paths are not root relative, I start checking from the beginning of the path and go to the end.
+                But, I could stop at the end when the end did not match, it will also make the path matcher performant.
+                It will also solve confusion with double asterisk with putting some conditions.
+        """
         if cpath.is_file() and self.directories_only:
             # path to be matched is a file but this pattern will only match directories
             return False
         if len(cpath.names) == 0:  # TODO: are cpath with zerom comp valid?
             return False
 
+        # initial assumption that it matched the path - you have to prove it wrong by setting False where possible
         matched = True
         path_components = deque(cpath.names)
-        _popped_path_components = deque()
         matchers: typing.Deque[AbcMatcher] = deque(self.__matchers)
-        _popped_matchers = deque()
 
         while True:
             # no condition on while as we have some nested checks and state changes that will be done at the beginning
             #   of the loop.
+
+            # pull out the right most matcher
+            matcher = matchers.pop()
+            if isinstance(matcher, CompMatcher):
+                path_comp = path_components.pop()
+                if not matcher.matches(path_comp):
+                    matched = False
+            else:
+                assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer's Error"
+
+                # keep going backward until a CompMatcher matches
+                # check if current path comp matches with any previous path comp matcher
+
+                # get the next left rule that is CompMatcher
+                if len(matchers) > 0:
+                    while isinstance(matcher, DoubleAsteriskMatcher):
+                        # using while loop to get single element - instead of using `if`
+                        matcher = matchers.pop()
+                        assert isinstance(matcher, CompMatcher), 'Programmer\'s Error - consecutive double ' \
+                                                                 'asterisk pairs are not eliminated in rules parser'
+                    # which of the left path comps matches with this matcher?
+                    _a_left_path_comp_matched = False
+                    while len(path_components) > 0:
+                        path_comp = path_components.pop()
+                        if matcher.matches(path_comp):
+                            _a_left_path_comp_matched = True
+                            break
+
+                    if not _a_left_path_comp_matched:
+                        matched = False
+                else:
+                    # everything to the left is engulfed by this double asterisk
+                    path_components.clear()
+
             if len(path_components) == 0 or len(matchers) == 0:
-                if len(path_components) != 0:
+                if len(matchers) == 0 \
+                        and matched is True \
+                        and not self.is_root_relative:
+                    # matchers are exhausted | no matter if path_components left or not.
+                    # none said that it was not a match
+                    # it is non root relative
+
+                    # it is matched no matter there is any path components left or not
+                    # matched = True holds
+                    ...
+                elif any([path_components, matchers]):  # if any of them are non empty.
                     # all the paths were not consumed and thus the match is not completed.
                     matched = False
                 break
-
-            matcher = matchers.popleft()
-            _popped_matchers.append(matcher)
-            if isinstance(matcher, CompMatcher):
-                if not self.is_root_relative:
-                    _matched = False
-                    while path_components:
-                        path_comp = path_components.popleft()
-                        _popped_path_components.append(path_comp)
-                        if matcher.matches(path_comp) and len(path_components) == 0:
-                            _matched = True
-                    matched = _matched
-                    break  # as it is not root relative and the above while have consumed all path comp, bail out
-                else:
-                    path_comp = path_components.popleft()
-                    _popped_path_components.append(path_comp)
-                    if matcher.matches(path_comp):
-                        continue
-                    else:
-                        matched = False
-                        break
-            else:
-                assert isinstance(matcher, DoubleAsteriskMatcher), "Programmer Error"
-                # hard part # TODO: check and unittest if it is working correctly.
-                double_asterisk_matched = matcher.matches(path_components, matchers)
-                if double_asterisk_matched:
-                    continue
-                else:
-                    matched = False
-                    break
         return matched
 
     def matches(self, cpath: CPath):
         matched = self.matches_simple(cpath)
-        if self.is_negative:
+        if matched and self.is_negative:
             return not matched
-        else:
-            return matched
+        return matched
+
+    def matches_parent_dir(self, cpath: CPath):
+        assert self.directories_only, "Programmer's Error"
