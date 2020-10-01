@@ -9,6 +9,7 @@ class FsIgnorer:
         self.__path_matchers: List[PathMatcher] = gitignore_parser(text)
 
     def ignore(self, cpath: CPath) -> bool:
+        assert cpath.is_rel, "Programmer's Error - you passed absolute path"
         ignored = False
         for matcher in self.__path_matchers:
             if not matcher.is_negative:

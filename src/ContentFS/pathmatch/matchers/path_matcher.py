@@ -48,6 +48,7 @@ class PathMatcher:
         return self.__is_root_relative
 
     def matches_simple(self, cpath: CPath):
+        assert cpath.is_rel, "Programmer's Error - you passed absolute cpath"
         """
         This method does not take into consideration whether the pattern is a negative pattern
         """
@@ -159,6 +160,3 @@ class PathMatcher:
         if matched and self.is_negative:
             return not matched
         return matched
-
-    def matches_parent_dir(self, cpath: CPath):
-        assert self.directories_only, "Programmer's Error"
