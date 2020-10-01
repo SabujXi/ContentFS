@@ -1,76 +1,76 @@
 from unittest import TestCase
-from ContentFS.pathmatch.fsignore import FsIgnorer
+from ContentFS.pathmatch.fsmatchers import FsMatcherGitignore
 from ContentFS.cpaths.cpath import CPath
 
 
 class TestFsIgnorer(TestCase):
     def test_ignore__non_root_relative(self):
         self.assertTrue(
-            FsIgnorer("*.log").ignore(CPath("important/trace.log"))
+            FsMatcherGitignore("*.log").ignore(CPath("important/trace.log"))
         )
 
     def test_ignore__single_path_rule_root_relative(self):
         self.assertFalse(
-            FsIgnorer("/a").ignore(CPath("b/a"))
+            FsMatcherGitignore("/a").ignore(CPath("b/a"))
         )
 
     def test_ignore__single_path_n_pattern(self):
         self.assertTrue(
-            FsIgnorer("a").ignore(CPath("a"))
+            FsMatcherGitignore("a").ignore(CPath("a"))
         )
         self.assertTrue(
-            FsIgnorer("a").ignore(CPath("a/"))
+            FsMatcherGitignore("a").ignore(CPath("a/"))
         )
         self.assertFalse(
-            FsIgnorer("a/").ignore(CPath("a"))
+            FsMatcherGitignore("a/").ignore(CPath("a"))
         )
 
     def test_ignore__wildcard_middle(self):
         self.assertTrue(
-            FsIgnorer("a/*/z").ignore(CPath("a/b/z"))
+            FsMatcherGitignore("a/*/z").ignore(CPath("a/b/z"))
         )
 
     def test_ignore__char_class(self):
         self.assertFalse(
-            FsIgnorer("a/[!0-8]z").ignore(CPath("a/8z"))
+            FsMatcherGitignore("a/[!0-8]z").ignore(CPath("a/8z"))
         )
 
         self.assertTrue(
-            FsIgnorer("a/[!0-8]z").ignore(CPath("a/9z"))
+            FsMatcherGitignore("a/[!0-8]z").ignore(CPath("a/9z"))
         )
 
         self.assertFalse(
-            FsIgnorer("a/[!0-8]z").ignore(CPath("a/09z"))
+            FsMatcherGitignore("a/[!0-8]z").ignore(CPath("a/09z"))
         )
 
     def test_ignore__double_asterisk(self):
         self.assertTrue(
-            FsIgnorer("m/**").ignore(CPath("m/n/o9z"))
+            FsMatcherGitignore("m/**").ignore(CPath("m/n/o9z"))
         )
 
         self.assertTrue(
-            FsIgnorer("a/**/z").ignore(CPath("a/b/c/d/z"))
+            FsMatcherGitignore("a/**/z").ignore(CPath("a/b/c/d/z"))
         )
 
         self.assertTrue(
-            FsIgnorer("a/**/z").ignore(CPath("a/z"))
+            FsMatcherGitignore("a/**/z").ignore(CPath("a/z"))
         )
 
         self.assertTrue(
-            FsIgnorer("a/**/z").ignore(CPath("a/b/z/c/z"))
+            FsMatcherGitignore("a/**/z").ignore(CPath("a/b/z/c/z"))
         )
 
         self.assertFalse(
-            FsIgnorer("a/**/z/q/z").ignore(CPath("a/b/z/c/z"))
+            FsMatcherGitignore("a/**/z/q/z").ignore(CPath("a/b/z/c/z"))
         )
 
     def test_ignore__double_asterisk_w_char_class(self):
         self.assertTrue(
-            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/9z"))
+            FsMatcherGitignore("a/**/[!0-8]z").ignore(CPath("a/b/c/d/9z"))
         )
 
         self.assertFalse(
-            FsIgnorer("a/**/[!0-8]z").ignore(CPath("a/b/c/d/8z"))
+            FsMatcherGitignore("a/**/[!0-8]z").ignore(CPath("a/b/c/d/8z"))
         )
 
     def test_ignore__negation(self):
@@ -86,7 +86,7 @@ class TestFsIgnorer(TestCase):
             important.log
             logs/important.log
         """
-        fs_ignore = FsIgnorer("*.log\n!important.log")
+        fs_ignore = FsMatcherGitignore("*.log\n!important.log")
         # will match
         self.assertTrue(
             fs_ignore.ignore(CPath("debug.log"))
@@ -114,7 +114,7 @@ class TestFsIgnorer(TestCase):
         but not:
             important/debug.log
         """
-        fs_ignore = FsIgnorer("*.log\n!important/*.log\ntrace.*")
+        fs_ignore = FsMatcherGitignore("*.log\n!important/*.log\ntrace.*")
         self.assertTrue(
             fs_ignore.ignore(CPath("debug.log"))
         )
@@ -135,7 +135,7 @@ class TestFsIgnorer(TestCase):
             logs/important.log
         This is due to the performance reason git do not re-include when a parent directory is ignored.
         """
-        fs_ignore = FsIgnorer("logs/\n!logs/important.log")
+        fs_ignore = FsMatcherGitignore("logs/\n!logs/important.log")
         self.assertTrue(
             fs_ignore.ignore(CPath("logs/debug.log"))
         )
@@ -144,7 +144,7 @@ class TestFsIgnorer(TestCase):
         )
 
     def test_ignore__everything_inside_dir(self):
-        fs_ignore = FsIgnorer("logs/")
+        fs_ignore = FsMatcherGitignore("logs/")
         self.assertTrue(
             fs_ignore.ignore(CPath("logs/a"))
         )

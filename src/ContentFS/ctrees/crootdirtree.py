@@ -5,20 +5,19 @@ from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cfile_hashed import CFileHashed
 from ContentFS.cdiff import CDiff
-from ContentFS.pathmatch.fsignore import FsIgnorer as Ignorer
+from ContentFS.pathmatch.fsmatchers import AbcFsMatcher, FsMatcherGitignore
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
 
 
 class CRootDirTree(CDirTree):
-    def __init__(self, base_path, ignorer: Ignorer = None, fs: BaseMetaFsBackendContract = None):
+    def __init__(self, base_path, fs_matcher: AbcFsMatcher = None, fs: BaseMetaFsBackendContract = None):
         super().__init__("")
         self.__base_path = base_path
-        self.__ignorer = ignorer
+        self.__fs_matcher = fs_matcher
         if fs is None:
-            fs = RealMetaFileSystemBackend()
+            fs = RealMetaFileSystemBackend().set_base_path(self.__base_path)
         self.__fs = fs
-        self.__fs.set_base_path(self.__base_path)
         self.__loaded = False
 
     @property
@@ -42,7 +41,7 @@ class CRootDirTree(CDirTree):
             else:
                 cpath = CDirTree(names)
 
-            if self.__ignorer and self.__ignorer.ignore(cpath):
+            if self.__fs_matcher and self.__fs_matcher.exclude(cpath):
                 continue
             if cpath.is_dir():
                 self.__list(cpath, do_hash=do_hash)
