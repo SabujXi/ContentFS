@@ -11,7 +11,7 @@ class TestRealMetaFileSystemBackend(TestCase):
         self.file_1_name = f"{self.this_test_dir_name}/test_file_for_hash"
         self.file_1_sha1_hash = "A053DC84FE753C3E9187B97923F7A57BB7F44299"
         self.file_1_cpath = CPath(self.file_1_name)
-        self.real_fs = RealMetaFileSystemBackend(get_data_dir())
+        self.real_fs = RealMetaFileSystemBackend().set_base_path(get_data_dir())
 
     def test_exists(self):
         cpath_1 = CPath(f"{self.this_test_dir_name}/subdir/afile")

@@ -13,6 +13,7 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
     def set_base_path(self, base_path: str):
         # Should I restrict to setting only once???
         self.__base_path = base_path
+        return self
 
     @property
     def base_path(self):
