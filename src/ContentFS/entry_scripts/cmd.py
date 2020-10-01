@@ -1,8 +1,6 @@
 import os
 import sys
-from ContentFS.cpaths.crootdirtree import CRootDirTree
-from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
-from ContentFS.pathmatch.fsignore import FsIgnorer
+from ContentFS.ctrees.crootdirtree import CRootDirTree
 
 
 def main():

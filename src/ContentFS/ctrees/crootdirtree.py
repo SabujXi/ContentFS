@@ -1,7 +1,7 @@
 from json import dumps
 
 from ContentFS.cpaths.cpath import CPath
-from ContentFS.cpaths.cdirtree import CDirTree
+from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cfile_hashed import CFileHashed
 from ContentFS.cdiff import CDiff
