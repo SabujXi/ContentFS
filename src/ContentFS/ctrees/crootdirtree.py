@@ -11,10 +11,10 @@ from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBa
 
 
 class CRootDirTree(CDirTree):
-    def __init__(self, base_path, fs_matcher: AbcFsMatcher = None, fs: BaseMetaFsBackendContract = None):
+    def __init__(self, base_path, root_fs_matcher: AbcFsMatcher = None, fs: BaseMetaFsBackendContract = None):
         super().__init__("")
         self.__base_path = base_path
-        self.__fs_matcher = fs_matcher
+        self.__root_fs_matcher = root_fs_matcher
         if fs is None:
             fs = RealMetaFileSystemBackend().set_base_path(self.__base_path)
         self.__fs = fs
@@ -41,7 +41,7 @@ class CRootDirTree(CDirTree):
             else:
                 cpath = CDirTree(names)
 
-            if self.__fs_matcher and self.__fs_matcher.exclude(cpath):
+            if self.__root_fs_matcher and self.__root_fs_matcher.exclude(cpath):
                 continue
             if cpath.is_dir():
                 self.__list(cpath, do_hash=do_hash)

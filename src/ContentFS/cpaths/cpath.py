@@ -1,5 +1,6 @@
 import re
 from json import dumps
+from typing import Union, List, Tuple
 
 
 class CPath:
@@ -17,7 +18,7 @@ class CPath:
         # lstrip was not done
         return CPath.SPLIT_RE.split(path_string)
 
-    def __init__(self, names, is_dir=None, is_abs=None):
+    def __init__(self, names: Union[str, bytes, List[str], List[bytes], Tuple[str], Tuple[bytes]], is_dir=None, is_abs=None):
         """
         names can be string/byte path or list/tuple of string/byte paths.
         :param names: names of the
@@ -95,6 +96,10 @@ class CPath:
     @property
     def names(self):
         return self.__names
+
+    @property
+    def names_count(self):
+        return len(self.__names)
 
     @property
     def path(self):

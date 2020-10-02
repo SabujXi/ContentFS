@@ -47,7 +47,3 @@ class FsMatcherGitignore(AbcFsMatcher):
 
         return ignored
 
-
-# if cpath.name == '.git' and cpath.is_dir():
-#     return True
-# return False
