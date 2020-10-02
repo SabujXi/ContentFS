@@ -1,11 +1,11 @@
 from ContentFS.cpaths.cfile import CFile
-from ContentFS.exceptions import CFSException
+from ContentFS.exceptions import CFSException, CFSExceptionFileHashSizeMismatch
 
 
 class CFileHashed(CFile):
     def __init__(self, names, mtime, size, file_hash):
         if len(file_hash) != 40:
-            raise CFSException(
+            raise CFSExceptionFileHashSizeMismatch(
                 f'file hash hex string must be of size 40 (sha1), length {len(file_hash)} found with the value of {file_hash}'
             )
         super().__init__(names, mtime, size)

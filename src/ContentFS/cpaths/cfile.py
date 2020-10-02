@@ -1,4 +1,5 @@
 from ContentFS.cpaths.cpath import CPath
+from ContentFS.exceptions import CFSExceptionInvalidPathName
 
 
 class CFile(CPath):
@@ -6,6 +7,9 @@ class CFile(CPath):
         super().__init__(names)
         self.__size = size
         self.__mtime = mtime
+
+        if len(self.names) == 0:
+            raise CFSExceptionInvalidPathName("Files cannot be root and thus their components/names cannot be an empty list")
 
     @property
     def size(self):

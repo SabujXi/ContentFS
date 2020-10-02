@@ -1,13 +1,13 @@
 import re
 from json import dumps
 from typing import Union, List, Tuple
-from ContentFS.exceptions import CFSException
+from ContentFS.exceptions import CFSException, CFSExceptionInvalidPathName
 
 
 class CPath:
     SPLIT_RE = re.compile(r'[/\\]+')
     WIN_PATH_DRIVE_PATTERN = re.compile(r'^[a-z]:$', re.IGNORECASE)
-    EMPTY_PATH_RE = re.compile(r'^[ \t\n\r]*$')  # spaces or empty string
+    SPACE_ONLY_PATH_RE = re.compile(r'^[ \t\n\r]+$')  # spaces
 
     @staticmethod
     def path_to_names(path_string: str):
@@ -15,8 +15,11 @@ class CPath:
         * It doesn't check whether this contains white spaces at the beginning or at the end.
           It assumes that such invalid stuff will not be passed to it.
         """
-        # if CPath.EMPTY_PATH_RE.match(path_string):
-        #     raise CFSException(f"Path string provided  `{path_string}` - that is empty or contains only spaces")
+        if path_string == "":
+            return []
+
+        if CPath.SPACE_ONLY_PATH_RE.match(path_string):
+            raise CFSExceptionInvalidPathName(f"Path string provided  `{path_string}` - that is empty or contains only spaces")
 
         path_string = path_string.replace("\\", "/")
         path_string = path_string.rstrip("/").rstrip("\\")
@@ -54,46 +57,48 @@ class CPath:
                         _last_char = str(name[-1]) if len(name) > 0 else ''
                     assert isinstance(name, (str, bytes)), f"Invalid data type of name inside names: {type(name)}"
                     _names.extend(_name for _name in self.path_to_names(name) if _name)
-            _first_comp = _names[0]
+            if len(_names) == 0:
+                self.__is_dir = True
+                self.__names = tuple(_names)
+                self.__is_abs = False
+            else:
+                _first_comp = _names[0]
 
-            # calculating from path if it is absolute path or not before stripping out that data
-            _is_abs_calculated = True if _first_char and (_first_char in ('\\', '/') or self.WIN_PATH_DRIVE_PATTERN.match(_first_comp)) else False
-            # exclude empty names
-            #   A good use case is when this is a tree-root path it will be empty string as path and we don't keep that.
-            #   It is assumed that there is no possibility of having empty string except the only root path one where
-            #   there is only one path component and that is empty
-            _names = filter(lambda name: True if name else False, _names)
-            self.__names = tuple(_names)
+                # calculating from path if it is absolute path or not before stripping out that data
+                _is_abs_calculated = True \
+                    if _first_char and (_first_char in ('\\', '/') or self.WIN_PATH_DRIVE_PATTERN.match(_first_comp)) else False
+                # exclude empty names
+                #   A good use case is when this is a tree-root path it will be empty string as path and we don't keep that.
+                #   It is assumed that there is no possibility of having empty string except the only root path one where
+                #   there is only one path component and that is empty
+                _names = filter(lambda name: True if name else False, _names)
+                self.__names = tuple(_names)
 
-            # path ends with slash or not, it can be a directory. but path ends with a slash cannot be a file path.
-            #   check whether it is a dir or file looking at the end of the `names`
-            # self.__is_dir
-            if is_dir is None:
-                if len(self.__names) == 0:  # tree root
-                    self.__is_dir = True
-                else:
-                    self.__is_dir = False
-                    if _last_char in ("\\", "/"):
+                # path ends with slash or not, it can be a directory. but path ends with a slash cannot be a file path.
+                #   check whether it is a dir or file looking at the end of the `names`
+                # self.__is_dir
+                if is_dir is None:
+                    if len(self.__names) == 0:  # tree root
                         self.__is_dir = True
-            else:
-                self.__is_dir = is_dir
+                    else:
+                        self.__is_dir = False
+                        if _last_char in ("\\", "/"):
+                            self.__is_dir = True
+                else:
+                    self.__is_dir = is_dir
 
-            # self.__is_abs
-            if is_abs is None:
-                self.__is_abs = _is_abs_calculated
-            else:
-                assert is_abs == _is_abs_calculated, f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}"
-                self.__is_abs = is_abs
+                # self.__is_abs
+                if is_abs is None:
+                    self.__is_abs = _is_abs_calculated
+                else:
+                    assert is_abs == _is_abs_calculated, f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}"
+                    self.__is_abs = is_abs
         else:
             assert isinstance(names, CPath), f"Invalid data type of names: {type(names)}"
             # assuming isinstance of CPath
             self.__names = names.names
             self.__is_dir = names.is_dir
             self.__is_abs = names.is_abs
-
-        if not self.__is_dir:
-            if len(self.__names) == 0:
-                raise CFSException("Files cannot be root and thus their components/names cannot be an empty list")
 
         # cached results
         self.__cached_path = None
@@ -173,5 +178,5 @@ class CPath:
     def equals(self, another):
         return self.equals_by_path(another)
 
-    def equals_by_path(self, another):
-        return self.names == another.names and self.get_type() == another.get_type()
+    def equals_by_path(self, another: 'CPath'):
+        return self.names == another.names and self.get_type() == another.get_type() and self.is_abs == another.is_abs
