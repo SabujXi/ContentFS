@@ -13,15 +13,9 @@ class CDirTree(CDir):
         self.__child_cfiles_map: OrderedDictType[str, CFile] = OrderedDict()
         self.__child_cdirs_tree_map: OrderedDictType[str, CDirTree] = OrderedDict()
 
-    @property
-    def is_root(self) -> bool:
-        """Is root cannot have cdir"""
-        return self.names_count == 0
-
-    @property
     def is_sub(self) -> bool:
         "Is sub tree"
-        return not self.is_root
+        return not self.is_root()
 
     @property
     def as_cdir(self) -> Union[CDir, None]:

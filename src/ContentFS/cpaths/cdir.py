@@ -11,6 +11,9 @@ class CDir(CPath):
     def is_dir(self):
         return not self.is_file()
 
+    def is_root(self) -> bool:
+        return self.names_count == 0
+
     def to_dict(self):
         dct = super().to_dict()
         return dct

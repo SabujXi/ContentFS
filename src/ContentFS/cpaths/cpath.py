@@ -91,6 +91,10 @@ class CPath:
             self.__is_dir = names.is_dir
             self.__is_abs = names.is_abs
 
+        if not self.__is_dir:
+            if len(self.__names) == 0:
+                raise CFSException("Files cannot be root and thus their components/names cannot be an empty list")
+
         # cached results
         self.__cached_path = None
 
