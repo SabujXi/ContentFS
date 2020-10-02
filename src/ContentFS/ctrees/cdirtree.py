@@ -62,8 +62,8 @@ class CDirTree:
         Caution: this method does not check whether cpath belongs as 'child'
             This is a private method, never use it without knowing what you are doing, and must use this internally.
         """
-        if cpath.name in self.__child_cdirs_tree_map or cpath.name in self.__child_cfiles_map:
-            raise CFSException("Cannot add path twice - it's not a replace operation")
+        # if cpath.name in self.__child_cdirs_tree_map or cpath.name in self.__child_cfiles_map:
+        #     raise CFSException("Cannot add path twice - it's not a replace operation")
         tree = self
         if isinstance(cpath, CFile):
             self.__child_cfiles_map[cpath.name] = cpath
@@ -147,6 +147,9 @@ class CDirTree:
         CDirTree (not CDir - because that will not return inner children) & CFile
         """
         return list(self._get_child_cdir_trees()) + list(self._get_child_cfiles())
+
+    def get_children_cpaths(self) -> List[Union[CDir, CFile]]:
+        return list(self._get_child_cdirs()) + list(self._get_child_cfiles())
 
     def get_descendant_cpaths(self) -> Tuple[CPath]:
         descendants: List[CPath] = []
