@@ -4,6 +4,7 @@ from collections import OrderedDict, deque
 from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cpath import CPath
+from ContentFS.exceptions import CFSException
 
 
 class CDirTree:
@@ -61,6 +62,8 @@ class CDirTree:
         Caution: this method does not check whether cpath belongs as 'child'
             This is a private method, never use it without knowing what you are doing, and must use this internally.
         """
+        if cpath.name in self.__child_cdirs_tree_map or cpath.name in self.__child_cfiles_map:
+            raise CFSException("Cannot add path twice - it's not a replace operation")
         tree = self
         if isinstance(cpath, CFile):
             self.__child_cfiles_map[cpath.name] = cpath
@@ -73,6 +76,8 @@ class CDirTree:
     def add(self, cpath: CPath) -> 'CDirTree':
         """
         Add any level of descedents
+
+        :returns: last sub tree
         """
         assert isinstance(cpath, CPath)
         assert not isinstance(cpath, CDirTree)
@@ -92,7 +97,7 @@ class CDirTree:
             new_target = target_tree._get_child_tree(dir_comp_name)
             if new_target is None:
                 new_target = target_tree._add_child(CDir([*comp_left_names, *_inc_right_names]))
-            target_tree = new_target
+                target_tree = new_target
         target_tree._add_child(cpath)
 
         return target_tree

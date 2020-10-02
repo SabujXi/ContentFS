@@ -6,8 +6,10 @@ from ContentFS.exceptions import CFSException
 
 class TestCPath(TestCase):
     def test_path_to_names__empty_path_string(self):
-        path = ""
-        self.assertRaises(CFSException, lambda: CPath.path_to_names(path))
+        path1 = ""
+        self.assertRaises(CFSException, lambda: CPath.path_to_names(path1))
+        path2 = "                      \n    "
+        self.assertRaises(CFSException, lambda: CPath.path_to_names(path2))
 
     def test_path_to_names(self):
         path = "/firstdir/seconddir/thirdfile"

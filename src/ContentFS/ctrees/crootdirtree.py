@@ -1,10 +1,10 @@
 from json import dumps
-
+from typing import List
 from ContentFS.cpaths.cpath import CPath
 from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
+from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cfile_hashed import CFileHashed
-from ContentFS.cdiff import CDiff
 from ContentFS.pathmatch.fsmatchers import AbcFsMatcher, FsMatcherGitignore
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
@@ -12,7 +12,7 @@ from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBa
 
 class CRootDirTree(CDirTree):
     def __init__(self, base_path, root_fs_matcher: AbcFsMatcher = None, fs: BaseMetaFsBackendContract = None):
-        super().__init__("")
+        super().__init__(None)
         self.__base_path = base_path
         self.__root_fs_matcher = root_fs_matcher
         if fs is None:
@@ -24,28 +24,30 @@ class CRootDirTree(CDirTree):
     def base_path(self):
         return self.__base_path
 
-    def __list(self, parent: CPath, do_hash=False):
+    def __list(self, parent: CDirTree, do_hash=False):
         assert isinstance(parent, CDirTree)
-        path_names = self.__fs.listdir(parent)
-        parent_names = parent.names
+        path_names: List[str] = self.__fs.listdir(parent)
+        parent_names: List[str] = parent.cdir.names
         for path_name in path_names:
             names = (*parent_names, path_name)
             child_cpath = CPath(names)
             if self.__fs.is_file(child_cpath):
                 mtime = self.__fs.getmtime(child_cpath)
-                cpath = CFile(names, mtime, self.__fs.getsize(child_cpath))
+                child_cpath = CFile(names, mtime, self.__fs.getsize(child_cpath))
 
                 if do_hash:
-                    hash_value = self.__fs.gethash(cpath)
-                    cpath = CFileHashed(cpath.names, cpath.mtime, cpath.size, hash_value)
+                    hash_value = self.__fs.gethash(child_cpath)
+                    child_cpath = CFileHashed(child_cpath.names, child_cpath.mtime, child_cpath.size, hash_value)
             else:
-                cpath = CDirTree(names)
+                child_cpath = CDir(names)
 
-            if self.__root_fs_matcher and self.__root_fs_matcher.exclude(cpath):
+            if self.__root_fs_matcher and self.__root_fs_matcher.exclude(child_cpath):
                 continue
-            if cpath.is_dir():
-                self.__list(cpath, do_hash=do_hash)
-            parent.add_child(cpath)
+            if child_cpath.is_dir():
+                last_subtree = parent.add(child_cpath)
+                self.__list(last_subtree, do_hash=do_hash)
+            else:
+                parent.add(child_cpath)
 
     def load(self, do_hash=False):
         if self.__loaded:
@@ -53,38 +55,10 @@ class CRootDirTree(CDirTree):
         self.__list(self, do_hash=do_hash)
         self.__loaded = True
 
-    def diff(self, another_root):
-        root1 = self
-        root2 = another_root
-        descendant_map1 = {}
-        descendant_map2 = {}
-
-        for cpath in root1.get_descendant_cpaths():
-            descendant_map1[cpath.path] = cpath
-
-        for cpath in root2.get_descendant_cpaths():
-            descendant_map2[cpath.path] = cpath
-
-        diff_obj = CDiff()
-
-        for cpath1 in descendant_map1.values():
-            path1 = cpath1.path
-            if path1 not in descendant_map2:
-                diff_obj.add_deleted(cpath1)
-            else:
-                cpath2 = descendant_map2[path1]
-                if not cpath1.equals(cpath2):
-                    diff_obj.add_modified(cpath1)
-
-        for cpath2 in descendant_map2.values():
-            path2 = cpath2.path
-            if path2 not in descendant_map1:
-                diff_obj.add_new(cpath2)
-
-        return diff_obj
-
     def to_dict(self):
-        raise NotImplemented()
+        return {
+            'cpaths': self.to_list()
+        }
 
     def to_list(self):
         return [child.to_dict() for child in self.get_children()]
