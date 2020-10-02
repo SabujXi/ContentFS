@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, OrderedDict as OrderedDictType, Callable
+from typing import List, Tuple, Union, OrderedDict as OrderedDictType, Callable, Iterable
 from collections import OrderedDict, deque
 
 from ContentFS.cpaths.cdir import CDir
@@ -7,7 +7,7 @@ from ContentFS.cpaths.cpath import CPath
 
 
 class CDirTree:
-    def __init__(self, names: Union[CDir, List[str], Tuple[str], List[bytes], Tuple[bytes], None] = None):
+    def __init__(self, names: Union[CDir, str, bytes, List[str], Tuple[str], List[bytes], Tuple[bytes], None] = None):
         """Pass names None when this tree is the root tree"""
         if names is None or isinstance(names, CDir):
             self._cdir = names
@@ -35,13 +35,13 @@ class CDirTree:
     def is_empty(self) -> bool:
         return len(self.__child_cfiles_map) == 0 and len(self.__child_cdirs_tree_map)
 
-    def _get_child_cfiles(self):
+    def _get_child_cfiles(self) -> Iterable[CFile]:
         return self.__child_cfiles_map.values()
 
-    def _get_child_cdirs(self):
+    def _get_child_cdirs(self) -> Iterable[CDir]:
         return (tree.cdir for tree in self.__child_cdirs_tree_map.values())
 
-    def _get_child_cdir_trees(self):
+    def _get_child_cdir_trees(self) -> Iterable['CDirTree']:
         return self.__child_cdirs_tree_map.values()
 
     def _get_child_tree(self, name: str) -> Union['CDirTree', None]:
@@ -137,15 +137,56 @@ class CDirTree:
             for cfile in tree._get_child_cfiles():
                 visitor_callable(cfile, True, tree)  # cdir, is_leaf, cdir_tree
 
-    def get_children(self):
-        return tuple([*self._get_child_cdirs(), *self._get_child_cfiles()])
+    def get_children(self) -> List[Union['CDirTree', CFile]]:
+        """
+        CDirTree (not CDir - because that will not return inner children) & CFile
+        """
+        return list(self._get_child_cdir_trees()) + list(self._get_child_cfiles())
 
-    def get_descendants(self):
-        descendants = []
+    def get_descendant_cpaths(self) -> Tuple[CPath]:
+        descendants: List[CPath] = []
 
         def descendant_visitor(cpath: Union[CFile, CDir], is_leaf: bool, cdir_tree: 'CDirTree') -> None:
             descendants.append(cpath)
+
+        self.visit(descendant_visitor)
         return tuple(descendants)
+
+    def diff(self, another: 'CDirTree'):
+        root1 = self
+        root2 = another
+        descendant_map1 = {}
+        descendant_map2 = {}
+
+        for cpath in root1.get_descendant_cpaths():
+            descendant_map1[cpath.path] = cpath
+
+        for cpath in root2.get_descendant_cpaths():
+            descendant_map2[cpath.path] = cpath
+
+        diff_obj = CDirTreeDiff()
+
+        for cpath1 in descendant_map1.values():
+            path1 = cpath1.path
+            if path1 not in descendant_map2:
+                diff_obj.deleted.add(cpath1)
+            else:
+                cpath2 = descendant_map2[path1]
+                if not cpath1.equals(cpath2):
+                    diff_obj.modified.add(cpath1)
+
+        for cpath2 in descendant_map2.values():
+            path2 = cpath2.path
+            if path2 not in descendant_map1:
+                diff_obj.new.add(cpath2)
+
+        return diff_obj
+
+    def __bool__(self):
+        return self.__len__() > 0
+
+    def __len__(self):
+        return len(self.__child_cfiles_map) + len(self.__child_cdirs_tree_map)
 
     def __str__(self):
         return super().__str__() + '\n' + str(self.get_children())
@@ -158,3 +199,35 @@ class CDirTree:
     def equals(self, another: 'CDirTree'):
         # TODO: should implement recursive child matching?
         return another.cdir.is_dir() and self.cdir.names == another.cdir.names
+
+
+class CDirTreeDiff:
+    def __init__(self):
+        self.__deleted: CDirTree = CDirTree()
+        self.__modified: CDirTree = CDirTree()
+        self.__new: CDirTree = CDirTree()
+
+    @property
+    def deleted(self) -> CDirTree:
+        return self.__deleted
+
+    @property
+    def modified(self) -> CDirTree:
+        return self.__modified
+
+    @property
+    def new(self) -> CDirTree:
+        return self.__new
+
+    def changed(self) -> bool:
+        return any([self.__modified, self.__deleted, self.__new])
+
+    def __bool__(self):
+        return self.changed()
+
+    def to_dict(self) -> dict:
+        return {
+            'deleted': self.__deleted.to_dict(),
+            'modified': self.__modified.to_dict(),
+            'new': self.__new.to_dict()
+        }

@@ -59,10 +59,10 @@ class CRootDirTree(CDirTree):
         descendant_map1 = {}
         descendant_map2 = {}
 
-        for cpath in root1.get_descendants():
+        for cpath in root1.get_descendant_cpaths():
             descendant_map1[cpath.path] = cpath
 
-        for cpath in root2.get_descendants():
+        for cpath in root2.get_descendant_cpaths():
             descendant_map2[cpath.path] = cpath
 
         diff_obj = CDiff()
