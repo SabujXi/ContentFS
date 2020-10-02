@@ -8,9 +8,6 @@ class TestCRootDirTree(TestCase):
     def test_load(self):
         self.fail()
 
-    def test_diff(self):
-        self.fail()
-
     def test_to_dict(self):
         self.fail()
 
