@@ -1,9 +1,14 @@
 from unittest import TestCase
 from ContentFS.cpaths.cpath import CPath
 from tests.utils import get_data_dir
+from ContentFS.exceptions import CFSException
 
 
 class TestCPath(TestCase):
+    def test_path_to_names__empty_path_string(self):
+        path = ""
+        self.assertRaises(CFSException, lambda: CPath.path_to_names(path))
+
     def test_path_to_names(self):
         path = "/firstdir/seconddir/thirdfile"
         names = CPath.path_to_names(path)
@@ -20,6 +25,12 @@ class TestCPath(TestCase):
         path_4 = "/firstdir/seconddir/thirdfile/"
         names_4 = CPath.path_to_names(path_4)
         self.assertEqual(['', 'firstdir', 'seconddir', 'thirdfile'], names_4)
+
+    def test_path_to_names__linux_root(self):
+        path = '/'
+        names = CPath.path_to_names(path)
+        self.assertEqual([''], names)
+        self.assertNotEqual(['', ''], names)
 
     def test_name(self):
         path = "firstdir/seconddir/thirdfile/"

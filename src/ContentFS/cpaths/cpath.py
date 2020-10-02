@@ -1,11 +1,13 @@
 import re
 from json import dumps
 from typing import Union, List, Tuple
+from ContentFS.exceptions import CFSException
 
 
 class CPath:
     SPLIT_RE = re.compile(r'[/\\]+')
     WIN_PATH_DRIVE_PATTERN = re.compile(r'^[a-z]:$', re.IGNORECASE)
+    EMPTY_PATH_RE = re.compile(r'^[ \t\n\r]*$')  # spaces or empty string
 
     @staticmethod
     def path_to_names(path_string: str):
@@ -13,8 +15,16 @@ class CPath:
         * It doesn't check whether this contains white spaces at the beginning or at the end.
           It assumes that such invalid stuff will not be passed to it.
         """
-        path_string = path_string.rstrip("/").rstrip("\\")
+        if CPath.EMPTY_PATH_RE.match(path_string):
+            raise CFSException(f"Path string provided  `{path_string}` - that is empty or contains only spaces")
+
         path_string = path_string.replace("\\", "/")
+        path_string = path_string.rstrip("/").rstrip("\\")
+        # for '/' -> '' thus spliting that path results in one [''] instead of ['', '']
+        # re.split('/', '//')
+        # -> ['', '', ''] with r stripping it becomes ['']
+        # re.split('/', '//') -> ['', 'a']
+
         # lstrip was not done
         return CPath.SPLIT_RE.split(path_string)
 
