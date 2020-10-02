@@ -7,21 +7,16 @@ from ContentFS.cpaths.cpath import CPath
 from ContentFS.exceptions import CFSException
 
 
-class CDirTree:
-    def __init__(self, names: Union[CDir, str, bytes, List[str], Tuple[str], List[bytes], Tuple[bytes], None] = None):
-        """Pass names None when this tree is the root tree"""
-        if names is None or isinstance(names, CDir):
-            self._cdir = names
-        else:
-            self._cdir: CDir = CDir(names)
-
+class CDirTree(CDir):
+    def __init__(self, names: Union[CDir, str, bytes, List[str], Tuple[str], List[bytes], Tuple[bytes]] = ""):
+        super().__init__(names)
         self.__child_cfiles_map: OrderedDictType[str, CFile] = OrderedDict()
         self.__child_cdirs_tree_map: OrderedDictType[str, CDirTree] = OrderedDict()
 
     @property
     def is_root(self) -> bool:
         """Is root cannot have cdir"""
-        return self._cdir is None
+        return self.names_count == 0
 
     @property
     def is_sub(self) -> bool:
@@ -29,8 +24,8 @@ class CDirTree:
         return not self.is_root
 
     @property
-    def cdir(self) -> Union[CDir, None]:
-        return self._cdir
+    def as_cdir(self) -> Union[CDir, None]:
+        return CDir(self.names)
 
     @property
     def is_empty(self) -> bool:
@@ -40,7 +35,7 @@ class CDirTree:
         return self.__child_cfiles_map.values()
 
     def _get_child_cdirs(self) -> Iterable[CDir]:
-        return (tree.cdir for tree in self.__child_cdirs_tree_map.values())
+        return (tree.as_cdir for tree in self.__child_cdirs_tree_map.values())
 
     def _get_child_cdir_trees(self) -> Iterable['CDirTree']:
         return self.__child_cdirs_tree_map.values()
@@ -81,14 +76,14 @@ class CDirTree:
         """
         assert isinstance(cpath, CPath)
         assert not isinstance(cpath, CDirTree)
-        assert cpath.names[:-1] == self._cdir.names, f"cpath.names {cpath.names} cpath.names[:-1] {cpath.names[:-1]}, self.names {self.names}"
+        assert cpath.names[:-1] == self.names, f"cpath.names {cpath.names} cpath.names[:-1] {cpath.names[:-1]}, self.names {self.names}"
         assert cpath.is_rel, "Cannot add absolute path to a tree"
-        assert cpath.names_count > self._cdir.names_count
+        assert cpath.names_count > self.names_count
         # assert cpath.name not in self._child_map, "Cannot add a child twice" TODO: think later whether this old check will be added in the new add check
 
-        comp_left_names = deque(cpath.names[:self._cdir.names_count])
-        comp_right_names = deque(cpath.names[self._cdir.names_count:])
-        assert comp_left_names == self._cdir.names, "Root didn't match"
+        comp_left_names = tuple(cpath.names[:self.names_count])
+        comp_right_names = tuple(cpath.names[self.names_count:])
+        assert comp_left_names == self.names, f"Root didn't match: {comp_left_names} <-> {self.names}"
 
         target_tree = self
         _inc_right_names = []
@@ -98,9 +93,9 @@ class CDirTree:
             if new_target is None:
                 new_target = target_tree._add_child(CDir([*comp_left_names, *_inc_right_names]))
                 target_tree = new_target
-        target_tree._add_child(cpath)
+        last_tree = target_tree._add_child(cpath)
 
-        return target_tree
+        return last_tree
 
     def get(self, names: Union[CPath, List[str]]) -> Union[CFile, CDir, None]:
         if isinstance(names, CPath):
@@ -115,7 +110,7 @@ class CDirTree:
         if target_tree._get_child_file(names[-1]) is not None:
             return target_tree._get_child_file(names[-1])
         elif target_tree._get_child_tree(names[-1]) is not None:
-            return target_tree._get_child_tree(names[-1])._cdir
+            return target_tree._get_child_tree(names[-1]).as_cdir
         else:
             return None
 
@@ -125,7 +120,7 @@ class CDirTree:
     def visit(self, visitor_callable: Callable[[Union[CFile, CDir], bool, 'CDirTree'], None], depth_first=True):
         for tree in self._get_child_cdir_trees():
             # for cdir & cdirs
-            cdir = tree.cdir
+            cdir = tree.as_cdir
             if tree.is_empty:
                 visitor_callable(cdir, True, tree) #cdir, is_leaf, cdir_tree
             else:
@@ -200,13 +195,13 @@ class CDirTree:
         return super().__str__() + '\n' + str(self.get_children())
 
     def to_dict(self):
-        dct = self.cdir.to_dict()
+        dct = self.as_cdir.to_dict()
         dct['children'] = tuple([child.to_dict() for child in self.get_children()])
         return dct
 
     def equals(self, another: 'CDirTree'):
         # TODO: should implement recursive child matching?
-        return another.cdir.is_dir() and self.cdir.names == another.cdir.names
+        return another.is_dir() and self.names == another.names
 
 
 class CDirTreeDiff:
