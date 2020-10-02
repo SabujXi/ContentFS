@@ -23,7 +23,7 @@ class CDirTree(CDir):
 
     @property
     def is_empty(self) -> bool:
-        return len(self.__child_cfiles_map) == 0 and len(self.__child_cdirs_tree_map)
+        return len(self.__child_cfiles_map) == 0 and len(self.__child_cdirs_tree_map) == 0
 
     def _get_child_cfiles(self) -> Iterable[CFile]:
         return self.__child_cfiles_map.values()
@@ -64,13 +64,13 @@ class CDirTree(CDir):
 
     def add(self, cpath: CPath) -> 'CDirTree':
         """
-        Add any level of descedents
-
+        Add any level of descendents
         :returns: last sub tree
         """
         assert isinstance(cpath, CPath)
         assert not isinstance(cpath, CDirTree)
-        assert cpath.names[:-1] == self.names, f"cpath.names {cpath.names} cpath.names[:-1] {cpath.names[:-1]}, self.names {self.names}"
+        if not self.is_root():
+            assert cpath.names[:self.names_count] == self.names, f"cpath.names {cpath.names} cpath.names[:self.names_count] {cpath.names[:self.names_count]}, self.names {self.names}"
         assert cpath.is_rel, "Cannot add absolute path to a tree"
         assert cpath.names_count > self.names_count
         # assert cpath.name not in self._child_map, "Cannot add a child twice" TODO: think later whether this old check will be added in the new add check
@@ -92,8 +92,23 @@ class CDirTree(CDir):
         return last_tree
 
     def get(self, names: Union[CPath, List[str]]) -> Union[CFile, CDir, None]:
+        """
+        Pass a list of path comps to act relatively to this tree/subtree
+        Pass CPath to start from the root, yeah...
+        """
+        _orig_names = names
         if isinstance(names, CPath):
-            names = names.names
+            cpath: CPath = names
+            if self.is_root():
+                names = cpath.names
+            else:
+                l = self.names
+                r = cpath.names[:self.names_count]
+                if cpath.names_count > self.names_count and l == r:
+                    names = cpath.names[self.names_count:]
+                else:
+                    return None
+                    # raise CFSException(f"Not a match bro!!! l {l} r {r}")
         target_tree = self
         for name in names[:-1]:
             new_target = target_tree._get_child_tree(name)
@@ -102,13 +117,19 @@ class CDirTree(CDir):
             target_tree = new_target
 
         if target_tree._get_child_file(names[-1]) is not None:
-            return target_tree._get_child_file(names[-1])
+            ret_cpath = target_tree._get_child_file(names[-1])
         elif target_tree._get_child_tree(names[-1]) is not None:
-            return target_tree._get_child_tree(names[-1]).as_cdir
+            ret_cpath = target_tree._get_child_tree(names[-1]).as_cdir
         else:
-            return None
+            ret_cpath = None
 
-    def exists(self, names: Union[CPath, List[str]]) -> bool:
+        if ret_cpath is not None \
+                and isinstance(_orig_names, CPath) \
+                and _orig_names.get_type() != ret_cpath.get_type():
+            ret_cpath = None  # baat laga diya - stored cpath and passed cpath are not of the same type
+        return ret_cpath
+
+    def exists(self, names: Union[CPath, List[str], Tuple[str]]) -> bool:
         return True if self.get(names) is not None else False
 
     def visit(self, visitor_callable: Callable[[Union[CFile, CDir], bool, 'CDirTree'], None], depth_first=True):
