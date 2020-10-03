@@ -55,9 +55,15 @@ class CDirTree(CDir):
         #     raise CFSException("Cannot add path twice - it's not a replace operation")
         tree = self
         if isinstance(cpath, CFile):
+            if cpath.name in self.__child_cfiles_map:
+                raise CFSException(f"Cannot add child twice: {cpath.path}")  # TODO: appropriate new exception
+
             self.__child_cfiles_map[cpath.name] = cpath
         else:
             assert isinstance(cpath, CDir), "Programmer's Error"
+            if cpath.name in self.__child_cdirs_tree_map:
+                raise CFSException(f"Cannot add child twice: {cpath.path}")  # TODO: appropriate new exception
+
             tree = CDirTree(cpath)
             self.__child_cdirs_tree_map[cpath.name] = tree
         return tree
@@ -69,24 +75,31 @@ class CDirTree(CDir):
         """
         assert isinstance(cpath, CPath)
         assert not isinstance(cpath, CDirTree)
+        assert cpath.is_rel, "Cannot add absolute path to a tree"
+        if cpath.is_dir():
+            cdir: CDir = cpath
+            assert not cdir.is_root(), f"Programmer's Error - cannot add root dir to a tree or sub tree: {cdir.to_dict()}"
+        assert cpath.names_count > self.names_count
         if not self.is_root():
             assert cpath.names[:self.names_count] == self.names, f"cpath.names {cpath.names} cpath.names[:self.names_count] {cpath.names[:self.names_count]}, self.names {self.names}"
-        assert cpath.is_rel, "Cannot add absolute path to a tree"
-        assert cpath.names_count > self.names_count
         # assert cpath.name not in self._child_map, "Cannot add a child twice" TODO: think later whether this old check will be added in the new add check
 
         comp_left_names = tuple(cpath.names[:self.names_count])
         comp_right_names = tuple(cpath.names[self.names_count:])
         assert comp_left_names == self.names, f"Root didn't match: {comp_left_names} <-> {self.names}"
+        self_own_names = comp_left_names
 
-        target_tree = self
-        _inc_right_names = []
+        target_tree = self  # target tree is the tree where the cpath will be added as child
+        _inc_right_names = []  # adding right names one by one for testing existence and adding to the tree.
         for dir_comp_name in comp_right_names[:-1]:
             _inc_right_names.append(dir_comp_name)
             new_target = target_tree._get_child_tree(dir_comp_name)
+
             if new_target is None:
-                new_target = target_tree._add_child(CDir([*comp_left_names, *_inc_right_names]))
-                target_tree = new_target
+                new_target = target_tree._add_child(CDir([*self_own_names, *_inc_right_names]))
+            target_tree = new_target  # After the first time of writing this line I indented this one level forward and
+            # there was bugs of duplicate dir in visit, I remember when I indented this one. First time ok,
+            # second time wrong, now okay
         last_tree = target_tree._add_child(cpath)
 
         return last_tree
@@ -133,24 +146,31 @@ class CDirTree(CDir):
         return True if self.get(names) is not None else False
 
     def visit(self, visitor_callable: Callable[[Union[CFile, CDir], bool, 'CDirTree'], None], depth_first=True):
+        if depth_first:
+            # for cfiles for condition 1
+            for cfile in self._get_child_cfiles():
+                visitor_callable(cfile, True, self)  # cdir, is_leaf, cdir_tree
+
         for tree in self._get_child_cdir_trees():
             # for cdir & cdirs
-            cdir = tree.as_cdir
-            if tree.is_empty:
-                visitor_callable(cdir, True, tree) #cdir, is_leaf, cdir_tree
-            else:
-                if depth_first:
-                    tree.visit(visitor_callable, depth_first=depth_first)
-                    # in depth first current dir will be visited after all the depts are complete
-                    visitor_callable(cdir, False, tree)  # cdir, is_leaf, cdir_tree
-                else:
-                    # in non depth first it will be visited before descendants
-                    visitor_callable(cdir, False, tree)  # cdir, is_leaf, cdir_tree
-                    tree.visit(visitor_callable, depth_first=depth_first)
+            # if tree.is_empty:
+            #     visitor_callable(tree.as_cdir, True, tree) #cdir, is_leaf, cdir_tree
+            # else:
+            is_leaf = True if tree.is_empty else False
 
-            # for cfiles
-            for cfile in tree._get_child_cfiles():
-                visitor_callable(cfile, True, tree)  # cdir, is_leaf, cdir_tree
+            if depth_first:
+                tree.visit(visitor_callable, depth_first=depth_first)
+                # in depth first current dir will be visited after all the depts are complete
+                visitor_callable(tree.as_cdir, is_leaf, tree)  # cdir, is_leaf, cdir_tree
+            else:
+                # in non depth first it will be visited before descendants
+                visitor_callable(tree.as_cdir, is_leaf, tree)  # cdir, is_leaf, cdir_tree
+                tree.visit(visitor_callable, depth_first=depth_first)
+
+        if not depth_first:
+            # for cfiles for condition 2
+            for cfile in self._get_child_cfiles():
+                visitor_callable(cfile, True, self)  # cdir, is_leaf, cdir_tree
 
     def get_children(self) -> List[Union['CDirTree', CFile]]:
         """

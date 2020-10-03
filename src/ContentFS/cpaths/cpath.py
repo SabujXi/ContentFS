@@ -164,6 +164,9 @@ class CPath:
     def __str__(self):
         return "CPath: " + self.path
 
+    def __repr__(self):
+        return self.__str__()
+
     def to_dict(self):
         dct = {
             'names': self.names,
@@ -176,7 +179,8 @@ class CPath:
         return dumps(self.to_dict())
 
     def equals(self, another):
-        return self.equals_by_path(another)
+        return self.names == another.names and self.get_type() == another.get_type() and self.is_abs == another.is_abs
 
     def equals_by_path(self, another: 'CPath'):
-        return self.names == another.names and self.get_type() == another.get_type() and self.is_abs == another.is_abs
+        """Equals by path only"""
+        return self.path == another.path
