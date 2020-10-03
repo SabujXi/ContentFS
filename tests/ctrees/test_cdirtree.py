@@ -142,36 +142,53 @@ class TestCDirTree(TestCase):
         )
 
     def test_get_children(self):
-        self.fail()
+        root_tree = CDirTree()
+        root_tree.add(CFile("dir1/a.txt", 1, 2))
+        root_tree.add(CDir("dir2/"))
+        root_tree.add(CDir("dir3/p/q/r"))
+        root_tree.add(CFile("dir3/p/x.txt", 1, 5))
+
+        children = root_tree.get_children()
+        self.assertIsInstance(children[0], CDirTree)
+        self.assertEqual(3, len(children))
+        # TODO: more test case asserts
 
     def test_get_children_cpaths(self):
-        self.fail()
+        root_tree = CDirTree()
+        root_tree.add(CFile("dir1/a.txt", 1, 2))
+        children_cpaths = root_tree.get_children_cpaths()
+        self.assertEqual(children_cpaths[0].path, "dir1/")
+        self.assertIsInstance(children_cpaths[0], CDir)
 
     def test_get_descendant_cpaths(self):
-        self.fail()
+        root_tree = CDirTree()
+        root_tree.add(CFile("dir1/a.txt", 1, 2))
+        root_tree.add(CDir("dir2/"))
+        root_tree.add(CDir("dir3/p/q/r"))
+        root_tree.add(CFile("dir3/p/x.txt", 1, 5))
+
+        dcp = root_tree.get_descendant_cpaths()
+        self.assertEqual(len(dcp), 8)
+        # TODO: more test case assert
 
     def test_diff(self):
-        self.fail()
+        root_tree1 = CDirTree()
+        root_tree1.add(CFile("dir1/a.txt", 1, 2))
+        root_tree1.add(CDir("dir2/"))
+        root_tree1.add(CDir("dir3/p/q/r"))
+        root_tree1.add(CFile("dir3/p/x.txt", 1, 5))
 
-    def test_to_dict(self):
-        self.fail()
+        root_tree2 = CDirTree()
+        root_tree2.add(CFile("dir1/a.txt", 11, 55))
+        root_tree2.add(CDir("dir3/p/q/r"))
+        root_tree2.add(CFile("dir3/p/x.txt", 1, 5))
 
-    def test_equals(self):
-        self.fail()
+        diff = root_tree1.diff(root_tree2)
+        self.assertIsNotNone(diff.modified.get(CPath("dir1/a.txt")))
+        self.assertTrue(len(diff.modified.get_children_cpaths()), 1)
+        self.assertTrue(diff.new.is_empty)
+        self.assertIsNotNone(diff.deleted.get(CPath("dir2/")))
+        self.assertTrue(len(diff.deleted.get_children_cpaths()), 1)
 
-
-class TestCDirTreeDiff(TestCase):
-    def test_deleted(self):
-        self.fail()
-
-    def test_modified(self):
-        self.fail()
-
-    def test_new(self):
-        self.fail()
-
-    def test_changed(self):
-        self.fail()
-
-    def test_to_dict(self):
-        self.fail()
+    # def test_to_dict(self):
+    #     self.fail()

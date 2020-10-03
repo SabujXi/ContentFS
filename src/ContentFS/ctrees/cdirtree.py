@@ -230,13 +230,16 @@ class CDirTree(CDir):
         return super().__str__() + '\n' + str(self.get_children())
 
     def to_dict(self):
+        # TODO: unittest
         dct = self.as_cdir.to_dict()
         dct['children'] = tuple([child.to_dict() for child in self.get_children()])
         return dct
 
     def equals(self, another: 'CDirTree'):
         # TODO: should implement recursive child matching?
-        return another.is_dir() and self.names == another.names
+        # TODO: unittest
+        raise NotImplemented("Equality checking of tree should be recursive. Do later.")
+        # return another.is_dir() and self.names == another.names
 
 
 class CDirTreeDiff:
