@@ -1,31 +1,23 @@
 from typing import List
+
+from ContentFS.pathmatch.contracts import AbcFsMatcher
 from ContentFS.pathmatch.matchers.path_matcher import PathMatcher
 from ContentFS.pathmatch.rules_parser import gitignore_parser
 from ContentFS.cpaths.cpath import CPath
-import abc
-
-
-class AbcFsMatcher(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def include(self, cpath: CPath) -> bool:
-        pass
-
-    @abc.abstractmethod
-    def exclude(self, cpath: CPath) -> bool:
-        pass
 
 
 class FsMatcherGitignore(AbcFsMatcher):
     def __init__(self, text):
         self.__path_matchers: List[PathMatcher] = gitignore_parser(text)
 
-    def include(self, cpath: CPath) -> bool:
-        return not self.exclude(cpath)
+    def matches(self, cpath: CPath) -> bool:
+        # exclude is given priority in Gitignore
+        return self._ignore(cpath)
 
-    def exclude(self, cpath: CPath) -> bool:
-        return self.ignore(cpath)
+    def is_includer(self) -> bool:
+        return False
 
-    def ignore(self, cpath: CPath) -> bool:
+    def _ignore(self, cpath: CPath) -> bool:
         assert cpath.is_rel, "Programmer's Error - you passed absolute path"
         ignored = False
         for matcher in self.__path_matchers:

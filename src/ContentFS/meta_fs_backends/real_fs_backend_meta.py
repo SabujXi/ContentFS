@@ -1,5 +1,6 @@
 import os
 import os.path
+from typing import IO
 from ContentFS.cpaths.cpath import CPath
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.exceptions import CFSException
@@ -113,3 +114,6 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
     def is_real_fs(self) -> bool:
         # concrete real fs
         return True
+
+    def open(self, cpath: CPath, *args, **kwargs) -> IO:
+        return open(self._full_path(cpath), *args, **kwargs)

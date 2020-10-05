@@ -45,3 +45,6 @@ class TestRealMetaFileSystemBackend(TestCase):
     def test_gethash(self):
         self.assertNotEqual(self.file_1_sha1_hash, self.real_fs.gethash(self.file_1_cpath))
         self.assertEqual(self.file_1_sha1_hash.lower(), self.real_fs.gethash(self.file_1_cpath))
+
+    def test_is_real_fs(self):
+        self.assertTrue(self.real_fs.is_real_fs())

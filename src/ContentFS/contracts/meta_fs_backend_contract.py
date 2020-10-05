@@ -1,4 +1,5 @@
 import abc
+from typing import IO
 
 
 class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
@@ -41,4 +42,13 @@ class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def is_real_fs(self) -> bool:
+        """
+        Real fs will allow you to read contents of cfile.
+        """
         return False
+
+    def open(self, path, *args, **kwargs) -> IO:
+        if not self.is_real_fs():
+            raise Exception("Cannot use read on non real fs")  # TODO: proper exception from contentfs
+        else:
+            raise NotImplemented
