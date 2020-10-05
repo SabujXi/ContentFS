@@ -24,9 +24,9 @@ def main():
     --json: json output will be printed instead of list.
     """
     args = sys.argv[1:]
-    print(f'ARGS: {args}')
+    # print(f'ARGS: {args}')
     base_path = os.getcwd()
-    print(f'base_path: {base_path}')
+    # print(f'base_path: {base_path}')
     root = CRootDirTree(base_path)
     if '--dev-matcher' in sys.argv[1:]:
         root.with_dev_matcher()
