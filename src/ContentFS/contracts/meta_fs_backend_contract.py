@@ -38,3 +38,7 @@ class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def gethash(self, path):
         """Get hash of the file"""
+
+    @abc.abstractmethod
+    def is_real_fs(self) -> bool:
+        return False

@@ -153,3 +153,7 @@ class JsonMetaFileSystemBackend(BaseMetaFsBackendContract):
             )
 
         return cpath.hash
+
+    def is_real_fs(self):
+        # this is not a real fs
+        return False

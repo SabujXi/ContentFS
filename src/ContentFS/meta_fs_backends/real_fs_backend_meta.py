@@ -109,3 +109,7 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
                 f'{str(e)}'
             )
         return res
+
+    def is_real_fs(self) -> bool:
+        # concrete real fs
+        return True
