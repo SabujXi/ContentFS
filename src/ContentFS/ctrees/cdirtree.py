@@ -187,7 +187,7 @@ class CDirTree(CDir):
         def descendant_visitor(cpath: Union[CFile, CDir], is_leaf: bool, cdir_tree: 'CDirTree') -> None:
             descendants.append(cpath)
 
-        self.visit(descendant_visitor)
+        self.visit(descendant_visitor, depth_first=False)
         return tuple(descendants)
 
     def diff(self, another: 'CDirTree'):

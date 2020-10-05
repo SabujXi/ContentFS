@@ -32,7 +32,7 @@ class CRootDirTree(CDirTree):
         self.__nested_matcher_groups[''].add(fsmatcher)
         return self
 
-    def with_dev_matcher(self):
+    def with_dev_matcher(self) -> 'CRootDirTree':
         self.__nested_matcher_groups[''].with_dev_matcher()
         return self
 
@@ -53,7 +53,8 @@ class CRootDirTree(CDirTree):
             child_cpath = CPath(names)
             if self.__fs.is_file(child_cpath):
                 mtime = self.__fs.getmtime(child_cpath)
-                child_cpath = CFile(names, mtime, self.__fs.getsize(child_cpath))
+                size = self.__fs.getsize(child_cpath)
+                child_cpath = CFile(names, mtime, size)
             else:
                 child_cpath = CDir(names)
             child_cpaths.append(child_cpath)
@@ -77,7 +78,7 @@ class CRootDirTree(CDirTree):
 
         # now list & hash if not ignored
         for child_cpath in child_cpaths:
-            if not self._should_include(parent, child_cpath):
+            if not self._should_include(child_cpath):
                 continue
 
             if child_cpath.is_file() and do_hash:
@@ -90,10 +91,10 @@ class CRootDirTree(CDirTree):
             else:
                 parent.add(child_cpath)
 
-    def _should_include(self, parent: CPath, cpath: CPath):
+    def _should_include(self, cpath: CPath):
         # get all the ancestor matcher group
         for path, matcher_group in self.__nested_matcher_groups.items():
-            if cpath.path.startswith(parent.path):
+            if cpath.path.startswith(path):  # found a matcher that lives in parent of cpath.
                 if matcher_group.should_exclude(cpath):
                     # if any of the matcher says that it should be excluded then exclude it.
                     #   TODO: think again, and experiment too.

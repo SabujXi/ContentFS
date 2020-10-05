@@ -16,21 +16,23 @@ class FsMatcherGroup:
             # primary/main intention is including.
             return True
 
-        do_include: bool = True  # default action is inclde.
+        include_decisions = []
+
         for fsmatcher in self.__fs_matchers:
             matches = fsmatcher.matches(cpath)
             if matches:
                 if fsmatcher.is_includer():
-                    do_include = True
+                    # including decision only from includer only when includer matches
+                    include_decisions.append(True)
                 else:
-                    do_include = False
-            else:
-                # then default behavior is inclusion.
-                # if matcher is not an includer then I will not take decisions from that when that does not match.
-                do_include = True
-        return do_include
+                    # excluder decision only from excluder only when excluder matches
+                    include_decisions.append(False)
 
-        # if not excluded then you must include it
+        # decision making
+        if not include_decisions:  # none gave any decision, then include
+            return True
+        else:  # so now take the last decision
+            return include_decisions[-1]
 
     def should_exclude(self, cpath: CPath) -> bool:
         return not self.should_include(cpath)
