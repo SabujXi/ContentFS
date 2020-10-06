@@ -214,6 +214,16 @@ class CDirTree(CDir):
         self.visit(descendant_visitor, depth_first=False)
         return tuple(descendants)
 
+    def get_leaves(self) -> Tuple[CPath]:
+        # TODO: write test
+        descendant_leaves: List[CPath] = []
+
+        def leaves_descendant_visitor(cpath: Union[CFile, CDir], is_leaf: bool, cdir_tree: 'CDirTree') -> None:
+            if is_leaf:
+                descendant_leaves.append(cpath)
+        self.visit(leaves_descendant_visitor, depth_first=False)
+        return tuple(descendant_leaves)
+
     def diff(self, another: 'CDirTree'):
         root1 = self
         root2 = another
