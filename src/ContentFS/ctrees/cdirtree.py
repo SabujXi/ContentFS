@@ -60,7 +60,7 @@ class CDirTree(CDir):
 
             self.__child_cfiles_map[cpath.name] = cpath
         else:
-            assert isinstance(cpath, CDir), "Programmer's Error"
+            assert isinstance(cpath, CDir), f"Programmer's Error, passed type: {type(cpath)}"
             if cpath.name in self.__child_cdirs_tree_map:
                 raise CFSException(f"Cannot add child twice: {cpath.path}")  # TODO: appropriate new exception
 
@@ -232,7 +232,7 @@ class CDirTree(CDir):
     def to_dict(self):
         # TODO: unittest
         dct = self.as_cdir.to_dict()
-        dct['children'] = tuple([child.to_dict() for child in self.get_children()])
+        dct['children'] = tuple([child.to_dict() for child in self.get_children()])  # json has list not tuple, that makes unittesting equality of to json and to dict problematic
         return dct
 
     def equals(self, another: 'CDirTree'):

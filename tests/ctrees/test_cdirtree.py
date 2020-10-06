@@ -4,6 +4,7 @@ from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cpath import CPath
+import json
 
 
 class TestCDirTree(TestCase):
@@ -190,5 +191,12 @@ class TestCDirTree(TestCase):
         self.assertIsNotNone(diff.deleted.get(CPath("dir2/")))
         self.assertTrue(len(diff.deleted.get_children_cpaths()), 1)
 
-    # def test_to_dict(self):
-    #     self.fail()
+    def test_to_dict__to_json_equal(self):
+        root_tree1 = CDirTree()
+        root_tree1.add(CFile("dir1/a.txt", 1, 2))
+        root_tree1.add(CDir("dir2/"))
+        root_tree1.add(CDir("dir3/p/q/r"))
+        root_tree1.add(CFile("dir3/p/x.txt", 1, 5))
+
+        root_to_dict = json.loads(json.dumps(root_tree1.to_dict()))  # for removing tuple list inconsistency
+        self.assertEqual(root_to_dict, json.loads(root_tree1.to_json()))

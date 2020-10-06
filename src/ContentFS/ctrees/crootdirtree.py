@@ -116,4 +116,4 @@ class CRootDirTree(CDirTree):
         return [child.to_dict() for child in self.get_children()]
 
     def to_json(self):
-        return dumps(self.to_list())
+        return dumps(self.to_dict())

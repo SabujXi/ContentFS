@@ -1,0 +1,3 @@
+this file is called a.txt
+and we the characters are the contents
+

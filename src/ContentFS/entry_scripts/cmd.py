@@ -17,11 +17,16 @@ def main_json(root):
     print(root.to_json())
 
 
+def main_dict(root):
+    print(root.to_dict())
+
+
 def main():
     """
     --hash: with file hashed
     --dev-matcher: dev fs matcher will be used - that is .git/ folders will be ignored
     --json: json output will be printed instead of list.
+    --dict: dict output be printed
     """
     args = sys.argv[1:]
     # print(f'ARGS: {args}')
@@ -39,6 +44,8 @@ def main():
 
     if '--json' in sys.argv[1:]:
         main_json(root)
+    elif '--dict' in sys.argv[1:]:
+        main_dict(root)
     else:
         main_list(root)
 
