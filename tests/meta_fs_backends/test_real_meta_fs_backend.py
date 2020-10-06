@@ -1,6 +1,7 @@
 from unittest import TestCase
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
 from ContentFS.cpaths.cpath import CPath
+from ContentFS.cpaths import CDir, CFile
 from tests.utils import get_data_dir, join_base
 import os
 
@@ -19,6 +20,19 @@ class TestRealMetaFileSystemBackend(TestCase):
         self.assertTrue(self.real_fs.exists(cpath_1))
         self.assertFalse(self.real_fs.exists(cpath_2))
 
+    def test_exists__path_type_independence(self):
+        cpath1 = CPath(f"{self.this_test_dir_name}/subdir/afile")
+        cfile1 = CFile(f"{self.this_test_dir_name}/subdir/afile", 1, 1)
+
+        cpath2 = CPath(f"{self.this_test_dir_name}/subdir")
+        cdir2 = CDir(f"{self.this_test_dir_name}/subdir")
+
+        self.assertTrue(self.real_fs.exists(cpath1))
+        self.assertTrue(self.real_fs.exists(cfile1))
+
+        self.assertTrue(self.real_fs.exists(cpath2))
+        self.assertTrue(self.real_fs.exists(cdir2))
+
     def test_is_file(self):
         cpath = CPath(f"{self.this_test_dir_name}/subdir/afile")
         fs_is_file = self.real_fs.is_file(cpath)
@@ -31,8 +45,12 @@ class TestRealMetaFileSystemBackend(TestCase):
 
     def test_listdir(self):
         os_dir_list = os.listdir(join_base(self.this_test_dir_name))
+
         fs_dir_list = self.real_fs.listdir(CPath(self.this_test_dir_name))
         self.assertEqual(os_dir_list, fs_dir_list)
+
+        # list the root dir
+        self.assertGreater(len(self.real_fs.listdir(CPath(""))), 0)
 
     def test_getmtime(self):
         os_mtime = os.path.getmtime(join_base(self.file_1_name))

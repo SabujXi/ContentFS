@@ -7,7 +7,7 @@ from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cfile_hashed import CFileHashed
 from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
-from ContentFS.exceptions import CFSException
+from ContentFS.exceptions import CFSException, CFSPathDoesNotExistException
 from typing import Callable
 from typing import List
 
@@ -71,13 +71,14 @@ class DictMetaFileSystemBackend(BaseMetaFsBackendContract):
         return os.path.join(self.base_path, cpath.path)
 
     def exists(self, cpath: CPath):
-        inside_cpath = self.__cdir_tree.get(cpath)
+        """Does not care what you pass, cdir or cfile - it does not check the type of the path"""
+        inside_cpath = self.__cdir_tree.get(cpath, path_type_aware=False)
         return inside_cpath is not None
 
     def is_file(self, cpath: CPath):
         inside_cpath = self.__cdir_tree.get(cpath)
         if inside_cpath is None:
-            raise CFSException(
+            raise CFSPathDoesNotExistException(
                 f'Meta File System Error (occurred during checking if the cpath is a file cpath {cpath}):\n'
                 f'X path does not exist'
             )
@@ -90,19 +91,29 @@ class DictMetaFileSystemBackend(BaseMetaFsBackendContract):
     def is_dir(self, cpath: CPath):
         return not self.is_file(cpath)
 
-    def listdir(self, cpath: CPath):
-        inside_cpath = self.__cdir_tree.get(cpath)
-        if inside_cpath is None:
-            raise CFSException(
-                f'File System Error (occurred during listing cpath: {cpath}):\n'
-                f'X Path does not exist'
-            )
-        if inside_cpath.is_file():
-            raise CFSException(
-                f'File System Error (occurred during listing cpath: {cpath}):\n'
-                f'X Cannot list on file'
-            )
-        return self.__cdir_tree.get_children_cpaths()
+    def listdir(self, cpath: CPath) -> List[str]:
+        if cpath.names_count > 0:
+            sub_tree = self.__cdir_tree.get_sub_tree(cpath)
+        else:
+            sub_tree = self.__cdir_tree
+
+        if sub_tree is None:
+            return []
+        else:
+            children_cpaths = sub_tree.get_children_cpaths()
+            return list(cpath.name for cpath in children_cpaths)
+
+        # TODO: throw exceptions accordingly
+        # if inside_cpath is None:
+        #     raise CFSException(
+        #         f'File System Error (occurred during listing cpath: {cpath}):\n'
+        #         f'X Path does not exist'
+        #     )
+        # if inside_cpath.is_file():
+        #     raise CFSException(
+        #         f'File System Error (occurred during listing cpath: {cpath}):\n'
+        #         f'X Cannot list on file'
+        #     )
 
     def getmtime(self, cpath: CPath):
         inside_cpath = self.__cdir_tree.get(cpath)

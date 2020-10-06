@@ -41,7 +41,13 @@ class TestCDirTree(TestCase):
         self.assertEqual(('a', 'b', 'c', 'd'), ddir.names)
 
         ddir2 = tree1.get(CPath("a/b/c/d"))
-        self.assertIsNone(ddir2)
+        self.assertIsNotNone(ddir2)
+
+        ddir4 = tree1.get(CDir("a/b/c/d"))
+        self.assertIsNotNone(ddir4)
+
+        ddir3 = tree1.get(CFile("a/b/c/d", 1, 1))
+        self.assertIsNone(ddir3)
 
     def test_get(self):
         tree1 = CDirTree("a/b/c")
@@ -49,6 +55,17 @@ class TestCDirTree(TestCase):
         self.assertEqual(('a', 'b', 'c', 'd', 'e', 'f'), ftree.names)
         ddir = tree1.get(CPath('a/b/c/d/'))
         self.assertEqual('a/b/c/d/', ddir.path)
+
+        # path type aware/unaware
+        self.assertIsNotNone(
+            tree1.get(CPath('a/b/c/d'))
+        )
+        self.assertIsNotNone(
+            tree1.get(CFile('a/b/c/d', 1, 1), path_type_aware=False)
+        )
+        self.assertIsNone(
+            tree1.get(CFile('a/b/c/d', 1, 1))
+        )
 
     def test_exists(self):
         tree1 = CDirTree("a/b/c")

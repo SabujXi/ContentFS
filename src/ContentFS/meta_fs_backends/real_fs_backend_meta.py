@@ -26,6 +26,7 @@ class RealMetaFileSystemBackend(BaseMetaFsBackendContract):
         return os.path.join(self.base_path, cpath.path)
 
     def exists(self, cpath: CPath):
+        """Does not care what you pass, cdir or cfile - it does not check the type of the path"""
         try:
             res = os.path.exists(self._full_path(cpath))
         except (OSError, IOError) as e:

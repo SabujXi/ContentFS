@@ -1,7 +1,7 @@
 from unittest import TestCase
 from ContentFS.meta_fs_backends.dict_fs_backend_meta import DictMetaFileSystemBackend
 from ContentFS.meta_fs_backends.json_fs_backend_meta import JsonMetaFileSystemBackend
-from .serialized_data import fs_dict, fs_json
+from tests.meta_fs_backends.serialized_data import fs_dict, fs_json
 import json
 
 

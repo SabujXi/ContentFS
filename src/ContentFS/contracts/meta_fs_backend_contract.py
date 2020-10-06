@@ -1,5 +1,5 @@
 import abc
-from typing import IO
+from typing import IO, List
 
 
 class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
@@ -13,31 +13,36 @@ class BaseMetaFsBackendContract(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def exists(self, path):
-        """Checks existence of path"""
+    def exists(self, path) -> bool:
+        """
+        Checks existence of path
+
+        * does not check the type of the path.
+        """
 
     @abc.abstractmethod
-    def is_file(self, path):
+    def is_file(self, path) -> bool:
         """Checks if it is a file"""
 
     @abc.abstractmethod
-    def is_dir(self, path):
+    def is_dir(self, path) -> bool:
         """Checks if it is a dir"""
 
     @abc.abstractmethod
-    def listdir(self, path):
+    def listdir(self, path) -> List[str]:
         """Lists a directory"""
 
     @abc.abstractmethod
-    def getsize(self, path):
+    def getsize(self, path) -> int:
         """"""
 
     @abc.abstractmethod
-    def getmtime(self, path):
+    def getmtime(self, path) -> int:
+        # int or float?? TODO: check
         """Get modification? time"""
 
     @abc.abstractmethod
-    def gethash(self, path):
+    def gethash(self, path) -> str:
         """Get hash of the file"""
 
     @abc.abstractmethod
