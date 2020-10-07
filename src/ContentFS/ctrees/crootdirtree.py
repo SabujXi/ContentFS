@@ -6,7 +6,7 @@ from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cfile_hashed import CFileHashed
-from ContentFS.pathmatch.fsmatchers import FsMatcherGitignore, UniMetaFsIncluder
+from ContentFS.pathmatch.fsmatchers import FsMatcherGitignore, UniMetaFsIncluder, UniMetaFsExcluder
 from ContentFS.pathmatch.contracts import AbcFsMatcher
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
@@ -62,7 +62,7 @@ class CRootDirTree(CDirTree):
         # search for fs matcher config files
         for child_cpath in child_cpaths:
             if self.__fs.is_real_fs() and child_cpath.is_file():
-                if child_cpath.name in ('.gitignore', '.unimetafs_include'):
+                if child_cpath.name in ('.gitignore', '.unimetafs_exclude', '.unimetafs_include'):
                     matcher_cfile = child_cpath
                     # check includer or excluder
                     # TODO: read content of fs matcher files (e.g. gitignore) and then match further relative to that.
@@ -75,6 +75,8 @@ class CRootDirTree(CDirTree):
                         fs_matcher = FsMatcherGitignore(content)
                     elif matcher_cfile.name == '.unimetafs_include':
                         fs_matcher = UniMetaFsIncluder(content)
+                    elif matcher_cfile.name == '.unimetafs_exclude':
+                        fs_matcher = UniMetaFsExcluder(content)
                     else:
                         raise NotImplemented
                     # group will decide where to place includer and where excluder.

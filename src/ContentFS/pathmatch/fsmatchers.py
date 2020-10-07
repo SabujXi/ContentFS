@@ -40,6 +40,12 @@ class FsMatcherGitignore(AbcFsMatcher):
         return ignored
 
 
+class UniMetaFsExcluder(FsMatcherGitignore):
+    # TODO: unittest
+    def is_includer(self) -> bool:
+        return False
+
+
 class UniMetaFsIncluder(FsMatcherGitignore):
     # TODO: unittest
     def is_includer(self) -> bool:
