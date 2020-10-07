@@ -104,13 +104,13 @@ class CDirTree(CDir):
 
         return last_tree
 
-    def _get(self, names: Union[CPath, List[str]]) -> Union[CFile, 'CDirTree', None]:
+    def _get(self, path: Union[CPath, str, List[str], Tuple[str, ...]]) -> Union[CFile, 'CDirTree', None]:
         """
         It will return tree (not cdir), cfile or None
         """
-        _orig_names = names
-        if isinstance(names, CPath):
-            cpath: CPath = names
+        _orig_path = path
+        if isinstance(path, CPath):
+            cpath: CPath = path
             if self.is_root():
                 names = cpath.names
             else:
@@ -122,7 +122,8 @@ class CDirTree(CDir):
                     return None
                     # raise CFSException(f"Not a match bro!!! l {l} r {r}")
         else:
-            assert isinstance(names, (list, tuple))
+            assert isinstance(path, (list, tuple))
+            names = CPath.to_cpath_info(path).names
 
         assert len(names) > 0, "Programmer's Error"
 
@@ -141,7 +142,7 @@ class CDirTree(CDir):
             ret_cpath = None
         return ret_cpath
 
-    def get(self, names: Union[CPath, List[str]], path_type_aware: bool = True) -> Union[CFile, CDir, None]:
+    def get(self, path: Union[CPath, str, List[str], Tuple[str, ...]], path_type_aware: bool = True) -> Union[CFile, CDir, None]:
         """
         Pass a list of path comps to act relatively to this tree/subtree
         Pass CPath to start from the root, yeah...
@@ -149,12 +150,12 @@ class CDirTree(CDir):
         When it is path type aware then it will check for the type of the path
         If the type is pure CPath then it will not check the type, if it is instance of cfile or cdir then it is sensitive when path_type_aware is set to true
         """
-        _orig_names = names
-        ret_cpath = self._get(names)
+        _orig_path = path
+        ret_cpath = self._get(path)
         # when this query is path type aware and not string (or string array or etc) neither concrete CPath is passed
         if ret_cpath is not None:
-            if path_type_aware and isinstance(_orig_names, (CFile, CDir)):
-                if _orig_names.get_type() != ret_cpath.get_type():
+            if path_type_aware and isinstance(_orig_path, (CFile, CDir)):
+                if _orig_path.get_type() != ret_cpath.get_type():
                     ret_cpath = None  # baat laga diya - stored cpath and passed cpath are not of the same type
         if type(ret_cpath) is CDirTree:
             ret_cpath = ret_cpath.as_cdir
