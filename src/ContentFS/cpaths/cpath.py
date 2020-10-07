@@ -43,7 +43,10 @@ class CPathComponentsInfo:
         return self._drive != ''
 
     @property
-    def has_windows_drive(self) -> bool:
+    def has_non_unix_drive(self) -> bool:
+        """
+        It is not necessary that it will have to be windows drive, it can be file:// drive or even network one.
+        """
         return self._drive != '/'
 
     @property
@@ -139,9 +142,10 @@ class CPath:
                     # take first char of only the first comp info & discard others
                     drive = comps_info.drive
                 else:
-                    if comps_info.drive not in ['', '/']:
-                        # so, that is a windows drive and living in the middle of the components. Err.
-                        raise CFSExceptionInvalidPathName(f'Path: {path} is invalid due to having a non / `drive` in the middle of the path')
+                    if comps_info.has_non_unix_drive:  # drive not in ['', '/']:
+                        # so, that is a windows/no-unix/url/file/etc. drive and living in the middle of the components.
+                        # Err.
+                        raise CFSExceptionInvalidPathName(f'Path: {path} is invalid due to having a non unix `drive` in the middle of the path')
                 # last name
                 if i == len(path) - 1:
                     # take last char of only the last comp info, discard others
