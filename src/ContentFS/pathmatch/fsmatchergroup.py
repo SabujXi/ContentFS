@@ -47,7 +47,22 @@ class FsMatcherGroup:
     def add(self, fsmatcher: AbcFsMatcher):
         if fsmatcher in self.__fs_matchers:
             raise PathMatchError("Cannot add the same matcher object twice.")
-        self.__fs_matchers.append(fsmatcher)
+        # decision making where to position the matcher in the group
+        if fsmatcher.is_includer():
+            # if it is an includer then put it at the end
+            self.__fs_matchers.append(fsmatcher)
+        else:
+            # put it after the last excluder, if not present then insert at the beginning
+            last_excluder_idx = -1
+            for idx, fm in enumerate(self.__fs_matchers):
+                if not fm.is_includer():
+                    last_excluder_idx = idx
+            if last_excluder_idx == -1:
+                # no excluder exist already
+                self.__fs_matchers.insert(0, fsmatcher)
+            else:
+                # put the fs matcher after the last excluder
+                self.__fs_matchers.insert(last_excluder_idx + 1, fsmatcher)
         return self
 
     def with_dev_matcher(self):
