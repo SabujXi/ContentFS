@@ -144,7 +144,8 @@ class CDirTree(CDir):
 
     def get(self, path: Union[CPath, str, List[str], Tuple[str, ...]], path_type_aware: bool = True) -> Union[CFile, CDir, None]:
         """
-        Pass a list of path comps to act relatively to this tree/subtree
+        # TODO: add support for CPathInfo as path.
+        Pass a list of path comps/str path to act relatively to this tree/subtree
         Pass CPath to start from the root, yeah...
 
         When it is path type aware then it will check for the type of the path

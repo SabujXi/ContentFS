@@ -13,11 +13,11 @@ class TestCPath(TestCase):
 
     def test_path_to_names__fs_root_path_name(self):
         path1 = "/"
-        self.assertEqual([''], CPath.to_path_comps_info(path1).components)
+        self.assertEqual([''], CPath.to_path_comps_info(path1).names)
 
     def test_path_to_names__empty_path_string(self):
         path1 = ""
-        self.assertEqual([], CPath.to_path_comps_info(path1).components)
+        self.assertEqual([], CPath.to_path_comps_info(path1).names)
 
     def test_path_to_names__spaces_only_path_string(self):
         path2 = "                      \n    "
@@ -26,25 +26,25 @@ class TestCPath(TestCase):
     def test_path_to_names(self):
         path = "\\firstdir/seconddir/thirdfile"
         comps_info = CPath.to_path_comps_info(path)
-        names = comps_info.components
+        names = comps_info.names
         self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names)  # TODO: should this be changed to tuple from list?
         self.assertEqual(comps_info.first_char, '/')
 
         path_2 = r"firstdir\seconddir/thirdfile"
-        names_2 = CPath.to_path_comps_info(path_2).components
+        names_2 = CPath.to_path_comps_info(path_2).names
         self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_2)
 
         path_3 = r"firstdir\\\seconddir\thirdfile/"
-        names_3 = CPath.to_path_comps_info(path_3).components
+        names_3 = CPath.to_path_comps_info(path_3).names
         self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_3)
 
         path_4 = "/firstdir/seconddir/thirdfile/"
-        names_4 = CPath.to_path_comps_info(path_4).components
+        names_4 = CPath.to_path_comps_info(path_4).names
         self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_4)
 
     def test_path_to_names__linux_root(self):
         path = '/'
-        names = CPath.to_path_comps_info(path).components
+        names = CPath.to_path_comps_info(path).names
         self.assertEqual([''], names)
         self.assertNotEqual(['', ''], names)
 

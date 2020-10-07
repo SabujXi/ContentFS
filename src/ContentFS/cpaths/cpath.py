@@ -16,19 +16,21 @@ class CPathType(enum.Enum):
         return self.__str__()
 
 
-class CPathInfo:
-    """Should consider this as read only and use such. Only to_path_info() should return it's instance."""
-    def __init__(self, names: List[str], first_char: str, last_char: str):
-        self.names = names
-        self.names_count = len(names)
+class CPathComponentsInfo:
+    def __init__(self, first_char, names, last_char):
         self.first_char = first_char
+        self.names = names
         self.last_char = last_char
 
+        self.names_count = len(names)
 
-class CPathComponentsInfo:
-    def __init__(self, first_char, components, last_char):
+
+class CPathInfo(CPathComponentsInfo):
+    """Should consider this as read only and use such. Only to_path_info() should return it's instance."""
+    def __init__(self, first_char: str, names: List[str], last_char: str):
+        super().__init__(first_char, names, last_char)
+        self.names = names
         self.first_char = first_char
-        self.components = components
         self.last_char = last_char
 
 
@@ -84,7 +86,7 @@ class CPath:
         #   or when byte string is provided
         if isinstance(path, (str, bytes)):
             comps_info = CPath.to_path_comps_info(path)
-            _names = comps_info.components
+            _names = comps_info.names
             _first_char = comps_info.first_char  # str(path[0]) if len(path) > 0 else ''
             _last_char = comps_info.last_char  # str(path[-1]) if len(path) > 0 else ''
         # when an iterable of path component strings is provided
@@ -103,7 +105,7 @@ class CPath:
                     # take last char of only the last comp info, discard others
                     _last_char = comps_info.last_char # str(name[-1]) if len(name) > 0 else ''
 
-                _names.extend(comps_info.components)  # removing empty components
+                _names.extend(comps_info.names)  # removing empty components
         else:
             raise CFSException(f"Invalid type passed: {type(path)}")
 
@@ -113,7 +115,7 @@ class CPath:
         # #   there is only one path component and that is empty
         # _names = list(a_name for a_name in _names if a_name)
 
-        return CPathInfo(_names, _first_char, _last_char)
+        return CPathInfo(_first_char, _names, _last_char)
 
     def __init__(self, names: Union['CPath', str, bytes, List[str], List[bytes], Tuple[str, ...], Tuple[bytes, ...]], is_dir=None, is_abs=None):
         """
