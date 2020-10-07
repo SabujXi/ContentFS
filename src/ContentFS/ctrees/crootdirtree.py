@@ -6,7 +6,7 @@ from ContentFS.ctrees.cdirtree import CDirTree
 from ContentFS.cpaths.cfile import CFile
 from ContentFS.cpaths.cdir import CDir
 from ContentFS.cpaths.cfile_hashed import CFileHashed
-from ContentFS.pathmatch.fsmatchers import FsMatcherGitignore
+from ContentFS.pathmatch.fsmatchers import FsMatcherGitignore, UniMetaFsIncluder
 from ContentFS.pathmatch.contracts import AbcFsMatcher
 from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContract
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
@@ -60,17 +60,29 @@ class CRootDirTree(CDirTree):
 
         # matcher file finding block
         # search for fs matcher config files
+        matcher_cfiles = []
         for child_cpath in child_cpaths:
             if self.__fs.is_real_fs() and child_cpath.is_file():
-                if child_cpath.name in ['.gitignore']:
-                    # check includer or excluder
-                    # TODO: read content of fs matcher files (e.g. gitignore) and then match further relative to that.
-                    # make a fs matcher and attache it to the parent.
-                    content = ""
-                    with self.__fs.open(child_cpath, "r", encoding="utf-8") as f:
-                        content = f.read()
-                    fs_matcher: AbcFsMatcher = FsMatcherGitignore(content)
-                    self.__fs_matcher_root_group.add(fs_matcher, parent)
+                if child_cpath.name == '.gitignore':
+                    matcher_cfiles.insert(0, child_cpath)
+                elif child_cpath.name == '.unimetafs_include':
+                    matcher_cfiles.append(child_cpath)
+        for matcher_cfile in matcher_cfiles:
+            # check includer or excluder
+            # TODO: read content of fs matcher files (e.g. gitignore) and then match further relative to that.
+            # make a fs matcher and attache it to the parent.
+            content = ""
+            with self.__fs.open(matcher_cfile, "r", encoding="utf-8") as f:
+                content = f.read()
+            fs_matcher: AbcFsMatcher
+            if matcher_cfile.name == '.gitignore':
+                fs_matcher = FsMatcherGitignore(content)
+            elif matcher_cfile.name == '.unimetafs_include':
+                fs_matcher = UniMetaFsIncluder(content)
+            else:
+                raise NotImplemented
+
+            self.__fs_matcher_root_group.add(fs_matcher, parent)
 
         # now list & hash if not ignored
         for child_cpath in child_cpaths:
