@@ -13,11 +13,13 @@ class TestCPath(TestCase):
 
     def test_path_to_names__fs_root_path_name(self):
         path1 = "/"
-        self.assertEqual([''], CPath.to_path_comps_info(path1).names)
+        comp_info = CPath.to_path_comps_info(path1)
+        self.assertEqual(tuple([]), comp_info.names)
+        self.assertTrue(comp_info.drive == '/')
 
     def test_path_to_names__empty_path_string(self):
         path1 = ""
-        self.assertEqual([], CPath.to_path_comps_info(path1).names)
+        self.assertEqual(tuple(), CPath.to_path_comps_info(path1).names)
 
     def test_path_to_names__spaces_only_path_string(self):
         path2 = "                      \n    "
@@ -27,26 +29,27 @@ class TestCPath(TestCase):
         path = "\\firstdir/seconddir/thirdfile"
         comps_info = CPath.to_path_comps_info(path)
         names = comps_info.names
-        self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names)  # TODO: should this be changed to tuple from list?
-        self.assertEqual(comps_info.first_char, '/')
+        self.assertEqual(('firstdir', 'seconddir', 'thirdfile'), names)  # TODO: should this be changed to tuple from list?
+        self.assertEqual(comps_info.drive, '/')
 
         path_2 = r"firstdir\seconddir/thirdfile"
         names_2 = CPath.to_path_comps_info(path_2).names
-        self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_2)
+        self.assertEqual(('firstdir', 'seconddir', 'thirdfile'), names_2)
 
         path_3 = r"firstdir\\\seconddir\thirdfile/"
         names_3 = CPath.to_path_comps_info(path_3).names
-        self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_3)
+        self.assertEqual(('firstdir', 'seconddir', 'thirdfile'), names_3)
 
         path_4 = "/firstdir/seconddir/thirdfile/"
         names_4 = CPath.to_path_comps_info(path_4).names
-        self.assertEqual(['firstdir', 'seconddir', 'thirdfile'], names_4)
+        self.assertEqual(('firstdir', 'seconddir', 'thirdfile'), names_4)
 
     def test_path_to_names__linux_root(self):
         path = '/'
-        names = CPath.to_path_comps_info(path).names
-        self.assertEqual([''], names)
-        self.assertNotEqual(['', ''], names)
+        comps_info = CPath.to_path_comps_info(path)
+        names = comps_info.names
+        self.assertSequenceEqual([], names)
+        self.assertTrue(comps_info.drive == '/')
 
     def test_name(self):
         path = "firstdir/seconddir/thirdfile/"

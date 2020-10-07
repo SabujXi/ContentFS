@@ -1,4 +1,5 @@
 import re
+import json
 import enum
 from json import dumps
 from typing import Union, List, Tuple
@@ -17,26 +18,58 @@ class CPathType(enum.Enum):
 
 
 class CPathComponentsInfo:
-    def __init__(self, first_char, names, last_char):
-        self.first_char = first_char
-        self.names = names
-        self.last_char = last_char
+    def __init__(self, drive: str, names: List[str], last_char: str):
+        self._drive = drive
+        self._names = tuple(names)
+        self._last_char = last_char
 
-        self.names_count = len(names)
+    @property
+    def drive(self) -> str:
+        """
+        Drive letter with colon or unix root.
+        """
+        return self._drive
+
+    @property
+    def names(self) -> Tuple[str, ...]:
+        return self._names
+
+    @property
+    def last_char(self) -> str:
+        return self._last_char
+
+    @property
+    def has_drive(self) -> bool:
+        return self._drive != ''
+
+    @property
+    def has_windows_drive(self) -> bool:
+        return self._drive != '/'
+
+    @property
+    def has_unix_root(self) -> bool:
+        return self._drive == '/'
+
+    def to_dict(self) -> dict:
+        return {
+            'drive': self._drive,
+            'names': self._names,
+            'last_char': self._last_char
+        }
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
 
 
 class CPathInfo(CPathComponentsInfo):
     """Should consider this as read only and use such. Only to_path_info() should return it's instance."""
-    def __init__(self, first_char: str, names: List[str], last_char: str):
-        super().__init__(first_char, names, last_char)
-        self.names = names
-        self.first_char = first_char
-        self.last_char = last_char
+    def __init__(self, drive: str, names: List[str], last_char: str):
+        super().__init__(drive, names, last_char)
 
 
 class CPath:
     SPLIT_RE = re.compile(r'[/\\]+')
-    WIN_PATH_DRIVE_PATTERN = re.compile(r'^[a-z]:$', re.IGNORECASE)
+    DRIVE_PATH_RE = re.compile(r'^(?P<drive>[a-z]+:|/)?(?P<path>.*)')  # for extracting drive and path
     SPACE_ONLY_PATH_RE = re.compile(r'^[ \t\n\r]+$')  # spaces
 
     @staticmethod
@@ -47,9 +80,9 @@ class CPath:
         * It doesn't check whether this contains white spaces at the beginning or at the end.
           It assumes that such invalid stuff will not be passed to it.
         """
-        first_char = ''
         last_char = ''
         components = []
+        drive = ''
 
         if path_or_comp_string == "":
             return CPathComponentsInfo('', [], '')
@@ -59,19 +92,23 @@ class CPath:
 
         path_or_comp_string = path_or_comp_string.replace("\\", "/")
 
-        if len(path_or_comp_string) > 0:
-            first_char = path_or_comp_string[0]
-            last_char = path_or_comp_string[-1]
+        _m = CPath.DRIVE_PATH_RE.match(path_or_comp_string)
+        drive = _m.group('drive') if _m.group('drive') is not None else ''
+        path = _m.group('path')
 
-        cleaned_path_string = path_or_comp_string.strip("/")
+        if len(path) > 0:
+            last_char = path[-1]
+
+        cleaned_path_string = path.strip("/")
         # for '/' -> '' thus spliting that path results in one [''] instead of ['', '']
         # re.split('/', '//')
         # -> ['', '', ''] with r stripping it becomes ['']
         # re.split('/', '//') -> ['', 'a']
+        _comps = [comp for comp in CPath.SPLIT_RE.split(cleaned_path_string) if comp]
 
-        components.extend(CPath.SPLIT_RE.split(cleaned_path_string))
+        components.extend(_comps)
 
-        return CPathComponentsInfo(first_char, components, last_char)
+        return CPathComponentsInfo(drive, components, last_char)
 
     @staticmethod
     def to_cpath_info(path: Union[str, bytes, List[str], Tuple[str, ...]]) -> CPathInfo:
@@ -79,16 +116,17 @@ class CPath:
         """
         Will linerize name components or iterable.
         """
-        _names: List[str] = []
-        _first_char: str = ''  # None
-        _last_char: str = ''  # None
+        names: Union[List[str], Tuple[str, ...]] = []
+        drive: str = ''  # None
+        last_char: str = ''  # None
         # when a string of path instead of an iterable of names is provided.
         #   or when byte string is provided
         if isinstance(path, (str, bytes)):
             comps_info = CPath.to_path_comps_info(path)
-            _names = comps_info.names
-            _first_char = comps_info.first_char  # str(path[0]) if len(path) > 0 else ''
-            _last_char = comps_info.last_char  # str(path[-1]) if len(path) > 0 else ''
+
+            names = comps_info.names
+            drive = comps_info.drive  # str(path[0]) if len(path) > 0 else ''
+            last_char = comps_info.last_char  # str(path[-1]) if len(path) > 0 else ''
         # when an iterable of path component strings is provided
         #   but as those strings might have slashes between then
         elif isinstance(path, (list, tuple)):
@@ -99,13 +137,17 @@ class CPath:
                 # first name
                 if i == 0:
                     # take first char of only the first comp info & discard others
-                    _first_char = comps_info.first_char   # str(name[0]) if len(name) > 0 else ''
+                    drive = comps_info.drive
+                else:
+                    if comps_info.drive not in ['', '/']:
+                        # so, that is a windows drive and living in the middle of the components. Err.
+                        raise CFSExceptionInvalidPathName(f'Path: {path} is invalid due to having a non / `drive` in the middle of the path')
                 # last name
                 if i == len(path) - 1:
                     # take last char of only the last comp info, discard others
-                    _last_char = comps_info.last_char # str(name[-1]) if len(name) > 0 else ''
+                    last_char = comps_info.last_char
 
-                _names.extend(comps_info.names)  # removing empty components
+                names.extend(comps_info.names)
         else:
             raise CFSException(f"Invalid type passed: {type(path)}")
 
@@ -115,7 +157,7 @@ class CPath:
         # #   there is only one path component and that is empty
         # _names = list(a_name for a_name in _names if a_name)
 
-        return CPathInfo(_first_char, _names, _last_char)
+        return CPathInfo(drive, names, last_char)
 
     def __init__(self, names: Union['CPath', str, bytes, List[str], List[bytes], Tuple[str, ...], Tuple[bytes, ...]], is_dir=None, is_abs=None):
         """
@@ -123,61 +165,60 @@ class CPath:
         :param names: names of the
         """
         # ---- declarations ----
-        self.__names: Tuple[str, ...]
+        self.__cpath_info: CPathInfo
         self.__type: CPathType
         self.__is_abs: bool
-        # cached results
+        #      cached results
         self.__cached_path: Union[str, None] = None
 
         # ---- process names ----
         if isinstance(names, CPath):
-            self.__names = names.names
+            self.__cpath_info = names.cpath_info
             self.__type = names.get_type()
             self.__is_abs = names.is_abs
 
         elif isinstance(names, (str, bytes, list, tuple)):
+            # cpath info
             cpath_info = self.to_cpath_info(names)
+            self.__cpath_info = cpath_info
 
-            _names = cpath_info.names
-            _first_char = cpath_info.first_char
-            _last_char = cpath_info.last_char
-
-            if len(_names) == 0:
-                self.__names = tuple(_names)
+            # type
+            if len(cpath_info.names) == 0:
                 self.__type = CPathType.DIR
-                self.__is_abs = True if _first_char == '/' else False
             else:
-                _first_comp = _names[0]
-
-                # calculating from path if it is absolute path or not before stripping out that data
-                _is_abs_calculated = True \
-                    if _first_char == '/' or self.WIN_PATH_DRIVE_PATTERN.match(_first_comp)\
-                        else False
-
-                self.__names = tuple(_names)
-
                 # path ends with slash or not, it can be a directory. but path ends with a slash cannot be a file path.
                 #   check whether it is a dir or file looking at the end of the `names`
                 # self.__is_dir
                 if is_dir is None:
-                    if len(self.__names) == 0:  # tree root
+                    # let's calculate
+                    if len(cpath_info.names) == 0:  # tree root
                         self.__type = CPathType.DIR
                     else:
-                        if _last_char == "/":
+                        if cpath_info.last_char == "/":
                             self.__type = CPathType.DIR
                         else:
                             self.__type = CPathType.FILE
                 else:
                     self.__type = CPathType.DIR if is_dir else CPathType.FILE
 
-                # self.__is_abs
-                if is_abs is None:
-                    self.__is_abs = _is_abs_calculated
-                else:
-                    assert is_abs == _is_abs_calculated, f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}"
-                    self.__is_abs = is_abs
+            # is_abs
+            _is_abs_calculated = True if cpath_info.drive else False
+            #       is_abs final calculation
+            if is_abs is None:
+                self.__is_abs = _is_abs_calculated
+            else:
+                assert is_abs == _is_abs_calculated, f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}"
+                self.__is_abs = is_abs
         else:
             raise CFSException(f"Invalid data type of names: {type(names)}")
+
+    @property
+    def cpath_info(self) -> CPathInfo:
+        return self.__cpath_info
+
+    @property
+    def drive(self) -> str:
+        return self.__cpath_info.drive
 
     @property
     def is_abs(self) -> bool:
@@ -192,17 +233,17 @@ class CPath:
 
     @property
     def name(self) -> str:
-        if len(self.__names) == 0:
+        if len(self.names) == 0:
             return ''
-        return self.__names[-1]
+        return self.names[-1]
 
     @property
     def names(self):
-        return self.__names
+        return self.__cpath_info.names
 
     @property
     def names_count(self):
-        return len(self.__names)
+        return len(self.__cpath_info.names)
 
     @property
     def path(self):
@@ -211,21 +252,14 @@ class CPath:
             EXCEPT for the root dir with zero path components.
         """
         if self.__cached_path is None:
-            self.__cached_path = "/".join(self.__names)
-            if self.__names:  # instead of self.__cached_path
+            self.__cached_path = "/".join(self.names)
+            if self.names:  # instead of self.__cached_path
                 # without checking this introduced bug: empty string created a / for directory making that root path
                 #   and misguiding os.path.join in real meta fs listing method
                 self.__cached_path += '' if self.is_file() else '/'
             # for absolute path
             if self.__is_abs:
-                if len(self.__names) == 0:
-                    self.__cached_path = '/' + self.__cached_path
-                else:
-                    if not self.WIN_PATH_DRIVE_PATTERN.match(self.__names[0]):
-                        # for linux path
-                        self.__cached_path = '/' + self.__cached_path
-                    else:
-                        'For windows path nothing special is needed.'
+                self.__cached_path = (self.__cpath_info.drive if self.__cpath_info.drive != '/' else '/') + self.__cached_path
         return self.__cached_path
 
     def is_file(self):
