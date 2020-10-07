@@ -33,6 +33,10 @@ def main():
     base_path = os.getcwd()
     # print(f'base_path: {base_path}')
     root = CRootDirTree(base_path)
+    if '--help' in sys.argv[1:]:
+        print(main.__doc__)
+        return
+
     if '--dev-matcher' in sys.argv[1:]:
         root.with_dev_matcher()
 
