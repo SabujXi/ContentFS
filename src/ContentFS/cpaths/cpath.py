@@ -142,10 +142,10 @@ class CPath:
                     # take first char of only the first comp info & discard others
                     drive = comps_info.drive
                 else:
-                    if comps_info.has_non_unix_drive:  # drive not in ['', '/']:
+                    if comps_info.has_drive and comps_info.has_non_unix_drive:  # drive not in ['', '/']:
                         # so, that is a windows/no-unix/url/file/etc. drive and living in the middle of the components.
                         # Err.
-                        raise CFSExceptionInvalidPathName(f'Path: {path} is invalid due to having a non unix `drive` in the middle of the path')
+                        raise CFSExceptionInvalidPathName(f'Path: {path} is invalid due to having a non / `drive` in the middle of the path')
                 # last name
                 if i == len(path) - 1:
                     # take last char of only the last comp info, discard others
