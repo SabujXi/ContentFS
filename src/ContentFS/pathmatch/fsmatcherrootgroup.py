@@ -33,8 +33,9 @@ class FsMatcherRootGroup:
                 return False
         else:
             # look if any ancestor say that you should not match
+            ancestor_cdir = parent_cdir
             while True:
-                ancestor_cdir = CDir(parent_cdir.names[:-1])  # TODO: performace boost by passing trusted processed CPathNames object so that processing do not take palce to make cpath as they are already processed.
+                ancestor_cdir = CDir(ancestor_cdir.names[:-1])  # TODO: performace boost by passing trusted processed CPathNames object so that processing do not take palce to make cpath as they are already processed.
                 ancestor_matcher_group: Union[FsMatcherGroup, None] = self.__matcher_groups.get(ancestor_cdir.names, None)
                 if ancestor_matcher_group is not None:
                     if ancestor_matcher_group.should_exclude(cpath):
