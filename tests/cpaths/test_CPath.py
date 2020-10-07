@@ -1,6 +1,6 @@
 from unittest import TestCase
 from ContentFS.cpaths.cpath import CPath
-from tests.utils import get_data_dir
+from tests.utilities import get_data_dir
 from ContentFS.exceptions import CFSException, CFSExceptionInvalidPathName
 
 

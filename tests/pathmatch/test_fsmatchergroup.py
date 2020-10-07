@@ -1,6 +1,6 @@
 from unittest import TestCase
 from ContentFS.pathmatch.fsmatchergroup import FsMatcherGroup
-from ContentFS.cpaths.cpath import CPath
+from ContentFS.cpaths import CPath, CDir
 
 
 class TestFsMatcherGroup(TestCase):
@@ -14,12 +14,12 @@ class TestFsMatcherGroup(TestCase):
         self.fail()
 
     def test_with_dev_matcher(self):
-        matcher_group = FsMatcherGroup().with_dev_matcher()
+        matcher_group = FsMatcherGroup(CDir("")).with_dev_matcher()
         self.assertTrue(matcher_group.should_exclude(CPath(".git/")))
         self.assertFalse(matcher_group.should_include(CPath(".git/")))
 
     def test_without_dev_matcher(self):
-        matcher_group = FsMatcherGroup()
+        matcher_group = FsMatcherGroup(CDir(""))
         self.assertFalse(matcher_group.should_exclude(CPath(".git/")))
         self.assertTrue(matcher_group.should_include(CPath(".git/")))
 

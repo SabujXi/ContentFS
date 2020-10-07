@@ -12,6 +12,7 @@ from ContentFS.contracts.meta_fs_backend_contract import BaseMetaFsBackendContra
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
 from ..pathmatch.fsmatchergroup import FsMatcherGroup
 from ContentFS.exceptions import CFSException
+from ContentFS.pathmatch.fsmatcherrootgroup import FsMatcherRootGroup
 
 
 class CRootDirTree(CDirTree):
@@ -24,16 +25,14 @@ class CRootDirTree(CDirTree):
         self.__loaded = False
 
         # fs matchers.
-        self.__nested_matcher_groups = OrderedDict()  # key is tuple of dir names, value is fs matcher group
+        self.__fs_matcher_root_group = FsMatcherRootGroup()
 
-        self.__nested_matcher_groups[''] = FsMatcherGroup()  # root fs matcher group
-
-    def add_matcher(self, fsmatcher: AbcFsMatcher):
-        self.__nested_matcher_groups[''].add(fsmatcher)
+    def add_matcher(self, fsmatcher: AbcFsMatcher, parent_cdir: CDir):
+        self.__fs_matcher_root_group.add(fsmatcher, parent_cdir)
         return self
 
     def with_dev_matcher(self) -> 'CRootDirTree':
-        self.__nested_matcher_groups[''].with_dev_matcher()
+        self.__fs_matcher_root_group.with_dev_matcher()
         return self
 
     @property
@@ -67,18 +66,15 @@ class CRootDirTree(CDirTree):
                     # check includer or excluder
                     # TODO: read content of fs matcher files (e.g. gitignore) and then match further relative to that.
                     # make a fs matcher and attache it to the parent.
-                    parent_matcher_group = self.__nested_matcher_groups.get(parent.path, None)
-                    if parent_matcher_group is None:
-                        parent_matcher_group = FsMatcherGroup()
-                        self.__nested_matcher_groups[parent.path] = parent_matcher_group
                     content = ""
                     with self.__fs.open(child_cpath, "r", encoding="utf-8") as f:
                         content = f.read()
-                    parent_matcher_group.add(FsMatcherGitignore(content))
+                    fs_matcher: AbcFsMatcher = FsMatcherGitignore(content)
+                    self.__fs_matcher_root_group.add(fs_matcher, parent)
 
         # now list & hash if not ignored
         for child_cpath in child_cpaths:
-            if not self._should_include(child_cpath):
+            if not self.__fs_matcher_root_group.should_include(child_cpath):
                 continue
 
             if child_cpath.is_file() and do_hash:
@@ -90,16 +86,6 @@ class CRootDirTree(CDirTree):
                 self.__list(last_subtree, do_hash=do_hash)
             else:
                 parent.add(child_cpath)
-
-    def _should_include(self, cpath: CPath):
-        # get all the ancestor matcher group
-        for path, matcher_group in self.__nested_matcher_groups.items():
-            if cpath.path.startswith(path):  # found a matcher that lives in parent of cpath.
-                if matcher_group.should_exclude(cpath):
-                    # if any of the matcher says that it should be excluded then exclude it.
-                    #   TODO: think again, and experiment too.
-                    return False
-        return True
 
     def load(self, do_hash=False):
         if self.__loaded:

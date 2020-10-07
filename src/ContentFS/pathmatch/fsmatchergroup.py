@@ -3,12 +3,19 @@ from .contracts import AbcFsMatcher
 from ..cpaths import CPath
 from .exceptions import PathMatchError
 from .util_matchers.dev_matcher import DevFsMatcher
+from ContentFS.cpaths import CDir
 
 
 class FsMatcherGroup:
-    def __init__(self, *fsmatchers: AbcFsMatcher):
+    def __init__(self, host_dir: CDir, *fsmatchers: AbcFsMatcher):
+        self.__host_dir: CDir = host_dir
         self.__fs_matchers: List[AbcFsMatcher] = []
+
         self.__fs_matchers.extend(fsmatchers)
+
+    @property
+    def host_dir(self) -> CDir:
+        return self.__host_dir
 
     def should_include(self, cpath: CPath) -> bool:
         if len(self.__fs_matchers) == 0:

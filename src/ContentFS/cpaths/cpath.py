@@ -2,7 +2,7 @@ import re
 import json
 import enum
 from json import dumps
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Iterable
 from ContentFS.exceptions import CFSException, CFSExceptionInvalidPathName
 
 
@@ -66,8 +66,28 @@ class CPathComponentsInfo:
 
 class CPathInfo(CPathComponentsInfo):
     """Should consider this as read only and use such. Only to_path_info() should return it's instance."""
+    # TODO: performace boost by having a trusted cpathnames that can be trusted as refined and when passed cpath need not proceess to get names
+    # class __CPathNames:
+    #     def __init__(self, names: Union[Iterable[str]]):
+    #         self.__names = tuple(names)
+    #
+    #     @property
+    #     def names(self) -> Tuple[str, ...]:
+    #         return self.__names
+    #
+    #     @property
+    #     def parent(self):
+    #         return self.__class__(self.__names[:-1])
+    #
+    #     @property
+    #     def names_count(self) -> int:
+    #         return len(self.__names)
+
     def __init__(self, drive: str, names: List[str], last_char: str):
         super().__init__(drive, names, last_char)
+
+    def cpath_names_type(self):
+        return self.__CPathNames
 
 
 class CPath:

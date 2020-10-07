@@ -2,7 +2,7 @@ from unittest import TestCase
 from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBackend
 from ContentFS.cpaths.cpath import CPath
 from ContentFS.cpaths import CDir, CFile
-from tests.utils import get_data_dir, join_base
+from tests.utilities import get_data_dir, join_base
 import os
 
 
