@@ -5,13 +5,13 @@ from ContentFS.cpaths import CPath, CDir
 
 class TestFsMatcherGroup(TestCase):
     def test_should_include(self):
-        self.fail()
+        self.skipTest("Write test later")
 
     def test_should_exclude(self):
-        self.fail()
+        self.skipTest("Write test later")
 
     def test_add(self):
-        self.fail()
+        self.skipTest("Write test later")
 
     def test_with_dev_matcher(self):
         matcher_group = FsMatcherGroup(CDir("")).with_dev_matcher()
@@ -24,4 +24,4 @@ class TestFsMatcherGroup(TestCase):
         self.assertTrue(matcher_group.should_include(CPath(".git/")))
 
     def test_get_matchers(self):
-        self.fail()
+        self.skipTest("Write test later")
