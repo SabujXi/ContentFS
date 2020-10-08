@@ -6,12 +6,12 @@ from ContentFS.exceptions import CFSExceptionInvalidPathName, CFSException
 
 
 class CPathInfo:
-    def __init__(self, path: Union[str, bytes, List[str], Tuple[str, ...], 'CPathInfo', Tuple[str, Tuple[str, ...], str]], ___path_is_info_tuple: bool = False):
+    def __init__(self, path: Union[str, bytes, List[str], Tuple[str, ...], 'CPathInfo', Tuple[str, Tuple[str, ...], str]], _path_is_info_tuple: bool = False):
         # TODO: unittest -_- (should write unittest first)
         """
         Will linerize name components or iterable.
         """
-        if ___path_is_info_tuple:
+        if _path_is_info_tuple:
             assert isinstance(path, tuple)
             drive, names, last_char = path
 
@@ -93,7 +93,7 @@ class CPathInfo:
             drive: str = self.__drive
             names: Tuple[str, ...] = self.__names[:-1]
             last_char: str = '/' if names else ''
-            cpath_info = CPathInfo((drive, names, last_char), ___path_is_info_tuple=True)
+            cpath_info = CPathInfo((drive, names, last_char), _path_is_info_tuple=True)
             return cpath_info
         return None
 

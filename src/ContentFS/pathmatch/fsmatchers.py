@@ -7,14 +7,15 @@ from ContentFS.cpaths.cpath import CPath
 
 
 class FsMatcherGitignore(AbcFsMatcher):
-    def __init__(self, text):
+    def __init__(self, text=""):
         self.__path_matchers: List[PathMatcher] = gitignore_parser(text)
 
     def matches(self, cpath: CPath) -> bool:
         # exclude is given priority in Gitignore
         return self._ignore(cpath)
 
-    def is_includer(self) -> bool:
+    @classmethod
+    def is_includer(cls) -> bool:
         return False
 
     def _ignore(self, cpath: CPath) -> bool:
@@ -42,11 +43,14 @@ class FsMatcherGitignore(AbcFsMatcher):
 
 class UniMetaFsExcluder(FsMatcherGitignore):
     # TODO: unittest
-    def is_includer(self) -> bool:
+
+    @classmethod
+    def is_includer(cls) -> bool:
         return False
 
 
 class UniMetaFsIncluder(FsMatcherGitignore):
     # TODO: unittest
-    def is_includer(self) -> bool:
+    @classmethod
+    def is_includer(cls) -> bool:
         return True

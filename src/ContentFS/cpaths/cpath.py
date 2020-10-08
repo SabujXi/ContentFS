@@ -35,7 +35,7 @@ class CPath:
         else:
             if isinstance(names, CPathInfo):
                 cpath_info: CPathInfo = names
-            if isinstance(names, (str, bytes, list, tuple)):
+            elif isinstance(names, (str, bytes, list, tuple)):
                 # cpath info
                 cpath_info = self.to_cpath_info(names)
             else:

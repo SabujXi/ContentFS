@@ -14,7 +14,9 @@ class AbcFsMatcher(metaclass=abc.ABCMeta):
     # def exclude(self, cpath: CPath) -> bool:
     #     pass
 
-    def is_includer(self) -> bool:
+    @classmethod
+    @abc.abstractmethod
+    def is_includer(cls) -> bool:
         """
         Matcher group will take care of what to include and to exclude after matching.
         ---------------------

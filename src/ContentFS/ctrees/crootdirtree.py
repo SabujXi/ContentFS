@@ -13,6 +13,7 @@ from ContentFS.meta_fs_backends.real_fs_backend_meta import RealMetaFileSystemBa
 from ..pathmatch.fsmatchergroup import FsMatcherGroup
 from ContentFS.exceptions import CFSException
 from ContentFS.pathmatch.fsmatcherrootgroup import FsMatcherRootGroup
+from ContentFS.pathmatch import FsMatcherMapper
 
 
 class CRootDirTree(CDirTree):
@@ -62,7 +63,7 @@ class CRootDirTree(CDirTree):
         # search for fs matcher config files
         for child_cpath in child_cpaths:
             if self.__fs.is_real_fs() and child_cpath.is_file():
-                if child_cpath.name in ('.gitignore', '.unimetafs_exclude', '.unimetafs_include'):
+                if FsMatcherMapper.exists(child_cpath.name):
                     matcher_cfile = child_cpath
                     # check includer or excluder
                     # TODO: read content of fs matcher files (e.g. gitignore) and then match further relative to that.
@@ -71,14 +72,7 @@ class CRootDirTree(CDirTree):
                     with self.__fs.open(matcher_cfile, "r", encoding="utf-8") as f:
                         content = f.read()
                     fs_matcher: AbcFsMatcher
-                    if matcher_cfile.name == '.gitignore':
-                        fs_matcher = FsMatcherGitignore(content)
-                    elif matcher_cfile.name == '.unimetafs_include':
-                        fs_matcher = UniMetaFsIncluder(content)
-                    elif matcher_cfile.name == '.unimetafs_exclude':
-                        fs_matcher = UniMetaFsExcluder(content)
-                    else:
-                        raise NotImplemented
+                    fs_matcher = FsMatcherMapper.get(matcher_cfile.name)(content)
                     # group will decide where to place includer and where excluder.
                     # root group will forward to appropriate matcher group
                     self.__fs_matcher_root_group.add(fs_matcher, parent)
