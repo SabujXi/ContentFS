@@ -6,7 +6,7 @@ from ContentFS.exceptions import CFSExceptionInvalidPathName, CFSException
 
 
 class CPathInfo:
-    def __init__(self, path: Union[str, bytes, List[str], Tuple[str, ...], 'CPathInfo', Tuple[str, Tuple[str, ...], str]], _path_is_info_tuple: bool = False):
+    def __init__(self, path: Union[str, bytes, List[str], Tuple[str, ...], 'CPathInfo'], _path_is_info_tuple: bool = False):
         # TODO: unittest -_- (should write unittest first)
         """
         Will linerize name components or iterable.

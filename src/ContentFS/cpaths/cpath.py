@@ -3,7 +3,7 @@ from typing import Union, List, Tuple
 
 from ContentFS.cpaths import CPathComponentsInfo, CPathInfo
 from ContentFS.cpaths.cpath_type import CPathType
-from ContentFS.exceptions import CFSException
+from ContentFS.exceptions import CFSException, CFSExceptionInvalidPathName
 
 
 class CPath:
@@ -15,7 +15,10 @@ class CPath:
     def to_cpath_info(path: Union[str, bytes, List[str], Tuple[str, ...]]) -> CPathInfo:
         return CPathInfo(path)
 
-    def __init__(self, names: Union['CPath', CPathInfo, str, bytes, List[str], List[bytes], Tuple[str, ...], Tuple[bytes, ...]], is_dir=None, is_abs=None):
+    def __init__(self,
+                 names: Union['CPath', CPathInfo, str, bytes, List[str], List[bytes], Tuple[str, ...], Tuple[bytes, ...]],
+                 is_dir: Union[bool, None] = None,
+                 is_abs: Union[bool, None] = None):
         """
         names can be string/byte path or list/tuple of string/byte paths.
         :param names: names of the
@@ -29,47 +32,70 @@ class CPath:
 
         # ---- process names ----
         if isinstance(names, CPath):
-            self.__cpath_info = names.get_cpath_info()
-            self.__type = names.get_type()
-            self.__is_abs = names.is_abs
+            new_cpath_info = names.get_cpath_info()
+            new_type = names.get_type()
+            new_is_abs = names.is_abs
+
+            if is_dir is not None:
+                if is_dir != new_type.is_dir():
+                    raise CFSExceptionInvalidPathName(f"Incompatible CPath provided for instantiation. Type inferred: "
+                                                      f"{CPathType.get_type(is_dir)} but Type passed {new_type}")
         else:
+            # cpath info
             if isinstance(names, CPathInfo):
-                cpath_info: CPathInfo = names
+                new_cpath_info: CPathInfo = names
             elif isinstance(names, (str, bytes, list, tuple)):
                 # cpath info
-                cpath_info = self.to_cpath_info(names)
+                new_cpath_info = self.to_cpath_info(names)
             else:
                 raise CFSException(f"Invalid data type of names: {type(names)}")
 
-            self.__cpath_info = cpath_info
+            # type inferring (is_dir) verification 1
+            #     type verification: when inferred type is file.
+            if is_dir is False:
+                if new_cpath_info.last_char == '/':
+                    raise CFSExceptionInvalidPathName(f"A file cannot end with a slash. Passed path: {names}")
+                if len(new_cpath_info.names) == 0:
+                    raise CFSExceptionInvalidPathName(
+                        "Passed empty path for file. "
+                        "Files cannot be root and thus their components/names cannot be an empty list")
 
             # type
-            if len(cpath_info.names) == 0:
-                self.__type = CPathType.DIR
+            if len(new_cpath_info.names) == 0:
+                new_type = CPathType.DIR
             else:
                 # path ends with slash or not, it can be a directory. but path ends with a slash cannot be a file path.
                 #   check whether it is a dir or file looking at the end of the `names`
                 # self.__is_dir
+
+                # type calculation
                 if is_dir is None:
                     # let's calculate
-                    if len(cpath_info.names) == 0:  # tree root
-                        self.__type = CPathType.DIR
+                    if len(new_cpath_info.names) == 0:  # tree root
+                        new_type = CPathType.DIR
                     else:
-                        if cpath_info.last_char == "/":
-                            self.__type = CPathType.DIR
+                        if new_cpath_info.last_char == "/":
+                            new_type = CPathType.DIR
                         else:
-                            self.__type = CPathType.FILE
+                            new_type = CPathType.FILE
                 else:
-                    self.__type = CPathType.DIR if is_dir else CPathType.FILE
+                    new_type = CPathType.DIR if is_dir else CPathType.FILE
 
             # is_abs
-            _is_abs_calculated = True if cpath_info.drive else False
+            _is_abs_calculated = True if new_cpath_info.drive else False
             #       is_abs final calculation
             if is_abs is None:
-                self.__is_abs = _is_abs_calculated
+                new_is_abs = _is_abs_calculated
             else:
-                assert is_abs == _is_abs_calculated, f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}"
-                self.__is_abs = is_abs
+                # is abs calculation verification.
+                if is_abs != _is_abs_calculated:
+                    # TODO: write unittest
+                    raise CFSExceptionInvalidPathName(f"is_abs: {is_abs}, but calculated _is_abs_calculated: {_is_abs_calculated}")
+                new_is_abs = is_abs
+
+        self.__cpath_info = new_cpath_info
+        self.__type = new_type
+        self.__is_abs = new_is_abs
 
     # FUNDAMENTAL METHODS
     @property

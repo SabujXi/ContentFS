@@ -4,9 +4,6 @@ from typing import Type, Mapping
 
 
 class FsMatcherMapper:
-    MATCHER_TYPE_EXCLUDER = 1
-    MATCHER_TYPE_INCLUDER = 2
-
     FILENAME_CLASS: Mapping[str, Type[AbcFsMatcher]] = {
         '.gitignore': FsMatcherGitignore,
         '.unimetafs_exclude': UniMetaFsExcluder,

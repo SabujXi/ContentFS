@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ContentFS.cpaths.cfile import CFile, CPath
+from ContentFS.cpaths import CPathType, CFile, CPath, CDir
 from ContentFS.exceptions import CFSExceptionInvalidPathName
 
 
@@ -8,8 +8,21 @@ class TestCFile(TestCase):
         cfile_creation = lambda: CFile("", 1, 1)
         self.assertRaises(CFSExceptionInvalidPathName, cfile_creation)
 
+    def test_init_by_cdir(self):
+        cdir = CDir("a")
+        self.assertRaises(CFSExceptionInvalidPathName, lambda: CFile(cdir, 1, 1))
+
+    def test_path_with_slash_at_the_end(self):
+        self.assertRaises(CFSExceptionInvalidPathName, lambda: CFile("a/v/", 1, 1))
+
     def test_init_without_size_mtime(self):
         self.assertRaises(TypeError, lambda: CFile("a.txt"))
+
+    def test_get_type(self):
+        cpath = CPath("a/v")
+        self.assertEqual(cpath.get_type(), CPathType.FILE)
+        cfile = CFile("a/v", 1, 1)
+        self.assertEqual(cfile.get_type(), CPathType.FILE)
 
     def test_is_file(self):
         cpath = CPath('/a')
@@ -18,7 +31,7 @@ class TestCFile(TestCase):
 
     def test_is_dir(self):
         cpath = CPath('/a/')
-        cfile = CFile('/a/', 1, 1)
+        cfile = CFile('/a', 1, 1)
         self.assertNotEqual(cpath.is_dir(), cfile.is_dir())
 
     def test_equals(self):

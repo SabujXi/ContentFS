@@ -10,3 +10,15 @@ class CPathType(enum.Enum):
 
     def __repr__(self):
         return f'CPathType.{self.name}'
+
+    def is_dir(self) -> bool:
+        return self == CPathType.DIR
+
+    def is_file(self):
+        return self == CPathType.FILE
+
+    @classmethod
+    def get_type(cls, is_dir: bool):
+        if is_dir:
+            return cls.DIR
+        return cls.FILE

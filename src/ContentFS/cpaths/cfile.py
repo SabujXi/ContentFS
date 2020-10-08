@@ -5,12 +5,9 @@ from ContentFS.exceptions import CFSExceptionInvalidPathName
 
 class CFile(CPath):
     def __init__(self, names, mtime, size):
-        super().__init__(names)
+        super().__init__(names, is_dir=False)
         self.__size = size
         self.__mtime = mtime
-
-        if len(self.names) == 0:
-            raise CFSExceptionInvalidPathName("Files cannot be root and thus their components/names cannot be an empty list")
 
     # FUNDAMENTAL METHODS
     @property
@@ -29,12 +26,6 @@ class CFile(CPath):
         return CDir(cpath_info.get_parent())
 
     # HELPER METHODS
-    def is_file(self):
-        return True
-
-    def is_dir(self):
-        return not self.is_file()
-
     def equals(self, another):
         return super().equals(another) and\
                self.size == another.size and \

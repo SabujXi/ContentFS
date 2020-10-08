@@ -14,12 +14,6 @@ class CDir(CPath):
         return CDir(cpath_info.get_parent())
 
     # HELPER METHODS
-    def is_file(self):
-        return False
-
-    def is_dir(self):
-        return not self.is_file()
-
     def is_root(self) -> bool:
         return self.names_count == 0
 

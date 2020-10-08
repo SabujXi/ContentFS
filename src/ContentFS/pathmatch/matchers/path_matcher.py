@@ -10,7 +10,7 @@ from ContentFS.pathmatch.matchers.basic_matchers.double_asterisk_matcher import 
 class PathMatcher:
     """PathMatcher is intended to be constructed by rules_parser and not by manually/by hand"""
     def __init__(self, matchers: typing.List[AbcMatcher], line_original: str, is_negative: bool, only_directories: bool, is_root_relative: bool):
-        self.__matchers: typing.Tuple[AbcMatcher] = tuple(matchers)
+        self.__matchers: typing.Tuple[AbcMatcher, ...] = tuple(matchers)
         self.__line_original: str = line_original
         self.__is_negative: bool = is_negative
         self.__only_directories: bool = only_directories
@@ -22,7 +22,7 @@ class PathMatcher:
         return self.__line_original
 
     @property
-    def matchers(self) -> typing.Tuple[AbcMatcher]:
+    def matchers(self) -> typing.Tuple[AbcMatcher, ...]:
         return self.__matchers
 
     @property

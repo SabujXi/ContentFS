@@ -8,7 +8,7 @@ from ContentFS.exceptions import CFSException
 
 
 class CDirTree(CDir):
-    def __init__(self, names: Union[CDir, str, bytes, List[str], Tuple[str], List[bytes], Tuple[bytes]] = ""):
+    def __init__(self, names: Union[CDir, str, bytes, List[str], Tuple[str, ...], List[bytes], Tuple[bytes, ...]] = ""):
         super().__init__(names)
         self.__child_cfiles_map: OrderedDictType[str, CFile] = OrderedDict()
         self.__child_cdirs_tree_map: OrderedDictType[str, CDirTree] = OrderedDict()
@@ -168,7 +168,7 @@ class CDirTree(CDir):
             ret_tree = None
         return ret_tree
 
-    def exists(self, names: Union[CPath, List[str], Tuple[str]]) -> bool:
+    def exists(self, names: Union[CPath, List[str], Tuple[str, ...]]) -> bool:
         return True if self.get(names) is not None else False
 
     def visit(self, visitor_callable: Callable[[Union[CFile, CDir], bool, 'CDirTree'], None], depth_first=True):
@@ -207,7 +207,7 @@ class CDirTree(CDir):
     def get_children_cpaths(self) -> List[Union[CDir, CFile]]:
         return list(self._get_child_cdirs()) + list(self._get_child_cfiles())
 
-    def get_descendant_cpaths(self) -> Tuple[CPath]:
+    def get_descendant_cpaths(self) -> Tuple[CPath, ...]:
         descendants: List[CPath] = []
 
         def descendant_visitor(cpath: Union[CFile, CDir], is_leaf: bool, cdir_tree: 'CDirTree') -> None:
@@ -216,7 +216,7 @@ class CDirTree(CDir):
         self.visit(descendant_visitor, depth_first=False)
         return tuple(descendants)
 
-    def get_leaves(self) -> Tuple[CPath]:
+    def get_leaves(self) -> Tuple[CPath, ...]:
         # TODO: write test
         descendant_leaves: List[CPath] = []
 

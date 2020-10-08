@@ -43,7 +43,7 @@ class CRootDirTree(CDirTree):
     def __list(self, parent: CDirTree, do_hash=False):
         assert isinstance(parent, CDirTree)
         path_names: List[str] = self.__fs.listdir(parent)
-        parent_names: Tuple[str] = parent.names
+        parent_names: Tuple[str, ...] = parent.names
 
         # transform path into cpath, but don't do hash because: the file might already be ignored by a fs matcher
         #   config file. hash in listing block
