@@ -4,10 +4,12 @@ from ContentFS.cpaths import CPathType
 
 class TestCPathType(TestCase):
     def test_init(self):
+        # FILE
         self.assertEqual(CPathType.FILE.value, 'FILE')
         self.assertEqual(CPathType.FILE.name, 'FILE')
         self.assertEqual(str(CPathType.FILE), 'FILE')
 
+        # DIR
         self.assertEqual(CPathType.DIR.value, 'DIR')
         self.assertEqual(CPathType.DIR.name, 'DIR')
         self.assertEqual(str(CPathType.DIR), 'DIR')

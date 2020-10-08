@@ -32,17 +32,17 @@ class TestCFile(TestCase):
         # NOT Equal
         self.assertFalse(cfile1.equals(cfile2))
         # But equal by path
-        self.assertTrue(cfile1.equals_by_path(cfile2))
+        self.assertTrue(cfile1.equals_by_path_only(cfile2))
 
     def test_equals_by_size(self):
         cfile1 = CFile('a', 2, 3)
         cfile2 = CFile('a', 2, 3)
-        self.assertTrue(cfile1.equals_by_size(cfile2))
+        self.assertTrue(cfile1.equals_with_size(cfile2))
 
     def test_equals_by_size_timestamp(self):
         cfile1 = CFile('a', 2, 3)
         cfile2 = CFile('a', 2, 3)
-        self.assertTrue(cfile1.equals_by_size_timestamp(cfile2))
+        self.assertTrue(cfile1.equals_with_size_timestamp(cfile2))
 
     def test_to_dict(self):
         cfile1 = CFile('a', 2, 3)

@@ -23,7 +23,7 @@ class TestCFileHashed(TestCase):
         hcfile1 = CFileHashed("a", 1, 2, "a"*40)
         hcfile2 = CFileHashed("a", 1111, 2, "a"*40)
 
-        self.assertTrue(hcfile1.equals_by_hash(hcfile2))
+        self.assertTrue(hcfile1.equals_by_hash_only(hcfile2))
 
     def test_to_dict(self):
         hcfile = CFileHashed("a", 1111, 2, "a"*40)

@@ -113,7 +113,7 @@ class TestCPath(TestCase):
         self.assertTrue(CPath("a/b//c").equals(CPath(r"a/b\c")))
 
     def test_equals_by_path(self):
-        self.assertTrue(CPath("a/b//c").equals_by_path(CPath(r"a/b\c")))
+        self.assertTrue(CPath("a/b//c").equals_by_path_only(CPath(r"a/b\c")))
 
     def test_equals_abs_rel(self):
         cpath1 = CPath('a/b')

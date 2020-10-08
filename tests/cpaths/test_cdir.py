@@ -30,7 +30,7 @@ class TestCDir(TestCase):
         cdir1 = CDir('a/b')
         cdir2 = CDir('a/b/')
 
-        self.assertTrue(cdir1.equals_by_path(cdir2))
+        self.assertTrue(cdir1.equals_by_path_only(cdir2))
 
     def test_equals_abs_rel(self):
         cdir1 = CDir('a/b')

@@ -157,8 +157,10 @@ class CPath:
         return dumps(self.to_dict())
 
     def equals(self, another):
-        return self.names == another.names and self.get_type() == another.get_type() and self.is_abs == another.is_abs
+        return self.get_type() == another.get_type() and \
+               self.names == another.names and \
+               self.is_rel == another.is_rel
 
-    def equals_by_path(self, another: 'CPath'):
+    def equals_by_path_only(self, another: 'CPath'):
         """Equals by path only"""
         return self.path == another.path

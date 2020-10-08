@@ -87,7 +87,7 @@ class TestCDirTree(TestCase):
 
         def visitor_1(cpath, is_leaf, tree):
             nonlocal dir2_is_leaf
-            if cpath.equals_by_path(CPath("dir2/")):
+            if cpath.equals_by_path_only(CPath("dir2/")):
                 dir2_is_leaf = is_leaf
 
         root_tree.visit(visitor_1)

@@ -36,14 +36,16 @@ class CFile(CPath):
         return not self.is_file()
 
     def equals(self, another):
-        return self.equals_by_size_timestamp(another)
+        return super().equals(another) and\
+               self.size == another.size and \
+               self.mtime == another.mtime
 
-    def equals_by_size(self, another):
-        return self.equals_by_path(another) and self.size == another.size
+    def equals_with_size(self, another):
+        return self.equals_by_path_only(another) and self.size == another.size
 
-    def equals_by_size_timestamp(self, another):
+    def equals_with_size_timestamp(self, another: 'CFile'):
         """Equality by timestamp and size"""
-        return self.equals_by_size(another) and self.mtime == another.mtime
+        return self.get_type() == another.get_type() and self.is_rel == another.is_rel and self.size == another.size and self.mtime == another.mtime
 
     def to_dict(self):
         dct = super().to_dict()

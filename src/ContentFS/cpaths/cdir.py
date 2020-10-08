@@ -27,8 +27,5 @@ class CDir(CPath):
         dct = super().to_dict()
         return dct
 
-    def equals(self, another):
-        return self.equals_by_path(another)
-
     def __str__(self):
         return "CDir: " + self.path
