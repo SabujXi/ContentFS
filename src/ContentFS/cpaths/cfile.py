@@ -1,4 +1,5 @@
-from ContentFS.cpaths.cpath import CPath
+from typing import Union
+from ContentFS.cpaths import CPath, CDir
 from ContentFS.exceptions import CFSExceptionInvalidPathName
 
 
@@ -11,6 +12,7 @@ class CFile(CPath):
         if len(self.names) == 0:
             raise CFSExceptionInvalidPathName("Files cannot be root and thus their components/names cannot be an empty list")
 
+    # FUNDAMENTAL METHODS
     @property
     def size(self):
         return self.__size
@@ -19,6 +21,14 @@ class CFile(CPath):
     def mtime(self):
         return self.__mtime
 
+    # HELPER METHODS for ancestor/descendant
+    def get_parent(self) -> Union['CDir', None]:
+        cpath_info = self.get_cpath_info()
+        if not cpath_info.has_parent():
+            return None
+        return CDir(cpath_info.get_parent())
+
+    # HELPER METHODS
     def is_file(self):
         return True
 

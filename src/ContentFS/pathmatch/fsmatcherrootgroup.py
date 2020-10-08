@@ -23,9 +23,9 @@ class FsMatcherRootGroup:
 
     def should_include(self, cpath: CPath):
         assert cpath.is_rel
-        assert cpath.names_count > 0
+        assert cpath.has_parent()
         # does the parent dir matcher group exist
-        parent_cdir = CDir(cpath.names[:-1])
+        parent_cdir = CDir(cpath.get_cpath_info().get_parent())
         parent_matcher_group: Union[FsMatcherRootGroup, None] = self.__matcher_groups.get(parent_cdir.names, None)
         if parent_matcher_group is not None:
             # if parent says to exclude then look nothing beyond
@@ -33,9 +33,9 @@ class FsMatcherRootGroup:
                 return False
         else:
             # look if any ancestor say that you should not match
-            ancestor_cdir = parent_cdir
+            ancestor_cdir: CDir = parent_cdir
             while True:
-                ancestor_cdir = CDir(ancestor_cdir.names[:-1])  # TODO: performace boost by passing trusted processed CPathNames object so that processing do not take palce to make cpath as they are already processed.
+                ancestor_cdir = ancestor_cdir.get_parent()
                 ancestor_matcher_group: Union[FsMatcherGroup, None] = self.__matcher_groups.get(ancestor_cdir.names, None)
                 if ancestor_matcher_group is not None:
                     if ancestor_matcher_group.should_exclude(cpath):
