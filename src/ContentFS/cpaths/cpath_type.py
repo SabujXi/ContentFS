@@ -6,7 +6,7 @@ class CPathType(enum.Enum):
     FILE = 'FILE'
 
     def __str__(self):
-        return f'CPathType.{self.name}'
+        return f'{self.name}'
 
     def __repr__(self):
-        return self.__str__()
+        return f'CPathType.{self.name}'
