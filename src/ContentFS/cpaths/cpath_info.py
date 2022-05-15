@@ -1,4 +1,4 @@
-import json
+from ContentFS.utils.json_utils import json_encode
 from typing import Union, List, Tuple
 
 from .cpath_components_info import CPathComponentsInfo
@@ -6,10 +6,11 @@ from ContentFS.exceptions import CFSExceptionInvalidPathName, CFSException
 
 
 class CPathInfo:
+    # TODO: unittest -_- (should write unittest first)
     def __init__(self, path: Union[str, bytes, List[str], Tuple[str, ...], 'CPathInfo'], _path_is_info_tuple: bool = False):
-        # TODO: unittest -_- (should write unittest first)
         """
         Will linerize name components or iterable.
+        :param path: the path represented as string, bytes, list of strings, tuple of string
         """
         if _path_is_info_tuple:
             assert isinstance(path, tuple)
@@ -109,4 +110,4 @@ class CPathInfo:
         }
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict())
+        return json_encode(self.to_dict())

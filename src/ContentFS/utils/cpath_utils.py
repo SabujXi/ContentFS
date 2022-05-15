@@ -1,4 +1,4 @@
-from ContentFS.cpaths import CPath
+from ContentFS.cpaths.cpath import CPath
 from ContentFS.exceptions import CFSException
 
 

@@ -1,4 +1,4 @@
-from json import dumps
+from ContentFS.utils.json_utils import json_encode
 from typing import Union, List, Tuple
 
 from ContentFS.cpaths import CPathComponentsInfo, CPathInfo
@@ -157,6 +157,9 @@ class CPath:
 
     @property
     def is_rel(self) -> bool:
+        """
+        Informs if this is a relative path.
+        """
         return not self.is_abs
 
     @property
@@ -180,7 +183,7 @@ class CPath:
         return dct
 
     def to_json(self):
-        return dumps(self.to_dict())
+        return json_encode(self.to_dict())
 
     def equals(self, another):
         return self.get_type() == another.get_type() and \

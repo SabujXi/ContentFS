@@ -10,3 +10,5 @@ VERSION = {
 }
 
 HASHER = hashlib.sha1
+
+JSON_INDENT = 4

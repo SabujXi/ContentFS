@@ -14,9 +14,9 @@ from typing import List
 
 def visit_fs_dictz(dict_list: List[dict], visitor_callable: Callable[[dict], None]):
     """
-    dict list: list of dicts where the dicts are cpath serialized dict with addition that when it is dir, it can contain children
-
     Depth first visitor
+    :param dict_list: list of dicts where the dicts are cpath serialized dict with addition that when it is dir, it can contain children
+    :param visitor_callable: callback for what?
     """
     for path_dict in dict_list:
         visitor_callable(path_dict)
