@@ -78,6 +78,18 @@ class TestCPathComponentsInfo(TestCase):
         cci_backward_slash_path = CPathComponentsInfo(backward_slash_path)
         self.assertEqual("/", cci_backward_slash_path.last_char)
 
+        drive_only_path_linux = "/"
+        cci_drive_only_linux = CPathComponentsInfo(drive_only_path_linux)
+        self.assertEqual("", cci_drive_only_linux.last_char)
+
+        drive_only_path_windows = "C://"
+        cci_drive_only_windows = CPathComponentsInfo(drive_only_path_windows)
+        self.assertEqual("", cci_drive_only_windows.last_char)
+
+        drive_only_path_file = "file://"
+        cci_drive_only_file = CPathComponentsInfo(drive_only_path_file)
+        self.assertEqual("", cci_drive_only_file.last_char)
+
     def test_has_drive(self):
         relative_path = "hey/"
         cci_rel = CPathComponentsInfo(relative_path)

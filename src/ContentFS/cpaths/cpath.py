@@ -1,7 +1,8 @@
 from ContentFS.utils.json_utils import json_encode
 from typing import Union, List, Tuple
 
-from ContentFS.cpaths import CPathComponentsInfo, CPathInfo
+from ContentFS.cpaths.cpath_components_info import CPathComponentsInfo
+from ContentFS.cpaths.cpath_info import CPathInfo
 from ContentFS.cpaths.cpath_type import CPathType
 from ContentFS.exceptions import CFSException, CFSExceptionInvalidPathName
 
